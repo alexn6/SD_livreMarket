@@ -1,0 +1,16 @@
+{
+  "name": "v0",
+  "version": "1.0.0",
+  "description": "Versión inicial del servidor de compras y su simulador",
+  "main": "simuladorCompras.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "demian",
+  "license": "ISC",
+  "dependencies": {
+    "amqplib": "^0.5.2",
+    "sleep": "^5.2.3",
+    "underscore": "^1.9.1"
+  }
+}

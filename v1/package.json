@@ -1,0 +1,16 @@
+{
+  "name": "v1",
+  "version": "1.0.0",
+  "description": "Versión servidor de compras y simulador con máquina de estados",
+  "main": "simuladorComprasCC.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "demian",
+  "license": "ISC",
+  "dependencies": {
+    "amqplib": "^0.5.2",
+    "javascript-state-machine": "^3.1.0",
+    "underscore": "^1.9.1"
+  }
+}
