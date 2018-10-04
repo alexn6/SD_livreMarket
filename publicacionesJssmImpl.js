@@ -77,7 +77,7 @@ var PublicacionesJssm = require('javascript-state-machine').factory({
          return false;
        }
 
-       this.compra.hasInfraccion = _.pick(data,'haspInfraccion').hasInfraccion;
+       this.compra.hasInfraccion = _.pick(data,'hasInfraccion').hasInfraccion;
        if (this.compra.hasInfraccion) {
          return ['liberarProducto'];
        } else {

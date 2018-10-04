@@ -10,7 +10,11 @@ var WebJssm = require('javascript-state-machine').factory({
     {name:'solicitarEntrega',         from:'*',                                               to:'resolviendoEntrega'},
     {name:'resolverEntrega',          from:'resolviendoEntrega',                              to:'informandoEntrega'},
     {name:'informarEntregaSeleccionada',from:'informandoEntrega',                             to:'entregaInformada'},
-    {name:'reintentarEntrega',        from:'entregaInformada',                                to:'entregaInformada'}
+    {name:'reintentarEntrega',        from:'entregaInformada',                                to:'entregaInformada'},
+    // ultima transicion agregada
+    {name:'seleccionarPago',          from:'*',                                               to:'resolviendoPago'},
+    {name:'resolverPago',             from:'resolviendoPago',                                 to:'informandoPago'},
+    {name:'informarPagoSeleccionado', from:'informandoPago',                                  to:'pagoInformado'}
   ],
 
   data: {
@@ -55,6 +59,27 @@ var WebJssm = require('javascript-state-machine').factory({
     onReintentarEntrega: function (lifeCycle,data) {
       // Se solicitó re-informar la entrega seleccionada con lo cual se re-emite el estado
       return ['informarEntregaSeleccionada'];
+    },
+
+    // ################ ultimas agregadas ########################
+    onSeleccionarPago: function (lifeCycle,data) {
+      //console.log('onDetectarPublicaciones: data --> ',data);
+      this.compra = data;
+      return ['resolverPago'];
+    },
+
+    onResolverPago: function (lifeCycle,data) {
+      //console.log('onResolverpublicacion: data --> ',data);
+      this.compra.medioDePago = Math.random() > 0.5 ? 'efectivo' : 'debito';
+      return ['informarPagoSeleccionado'];
+    },
+
+    onInformarPagoSeleccionado: function (lifeCycle,data) {
+      var msg =  {};
+      msg.data = this.compra;
+      msg.tarea = lifeCycle.transition;
+      publicar('compras',JSON.stringify(msg));
+      return false;
     }
 
   }

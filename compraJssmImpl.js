@@ -162,6 +162,7 @@ var ComprasJssm = require('javascript-state-machine').factory({
       var msg =  {};
       msg.data = this.compra;
       msg.tarea = lifeCycle.transition;
+      console.log("SRV_COMPRAS: mje enviado a SRV_PAGOS --> "+JSON.stringify(msg));
       publicar('pagos',JSON.stringify(msg));
       return false;
     },

@@ -17,8 +17,8 @@ async.series([
                             })
   },
   function(callback) {
-    shell.execCommand("node crear_cola.js Publicaciones", function (returnvalue) {
-                              callback(null, "cola Publicaciones creada");
+    shell.execCommand("node crear_cola.js infracciones", function (returnvalue) {
+                              callback(null, "cola infracciones creada");
                             })
   },
   function(callback) {

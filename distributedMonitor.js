@@ -7,14 +7,24 @@ compras.connect(6000,'127.0.0.1', function () {
   console.log('conectado al monitor de COMPRAS en el puerto 6000\n');
 });
 
+var Infracciones = new net.Socket();
+Infracciones.connect(6001,'127.0.0.1', function () {
+  console.log('conectado al monitor de Infracciones en el puerto 6001\n');
+});
+
 var Publicaciones = new net.Socket();
-Publicaciones.connect(6001,'127.0.0.1', function () {
-  console.log('conectado al monitor de Publicaciones en el puerto 6001\n');
+Publicaciones.connect(6003,'127.0.0.1', function () {
+  console.log('conectado al monitor de Publicaciones en el puerto 6003\n');
 });
 
 var web = new net.Socket();
 web.connect(6002,'127.0.0.1', function () {
   console.log('conectado al monitor de WEB en el puerto 6002\n');
+});
+
+var pagos = new net.Socket();
+pagos.connect(6004,'127.0.0.1', function () {
+  console.log('conectado al monitor de PAGOS en el puerto 6004\n');
 });
 
 server.listen(5000, function () {
@@ -42,9 +52,15 @@ server.on('connection', function (sock) {
       case 'web':
         cliente = web;
         break;
+      case 'Infracciones':
+        cliente = Infracciones;
+        break;
+        case 'pagos':
+        cliente = pagos;
+        break;
 
       case 'status':
-        for (cli of [compras,Publicaciones,web]) {
+        for (cli of [compras,Publicaciones,web,Infracciones, pagos]) {
           cli.write('getAllCompras');
         }
         break;
@@ -85,6 +101,15 @@ server.on('connection', function (sock) {
     sock.write('conexión con Publicaciones perdida...');
   });
 
+  Infracciones.on('data',function (data) {
+    sock.write('Infracciones' + data + '\n');
+  });
+
+  Infracciones.on('close',function () {
+    console.log('conexión con Infracciones perdida...');
+    sock.write('conexión con Infracciones perdida...');
+  });
+
   web.on('data',function (data) {
     sock.write('WEB: ' + data + '\n');
   });
@@ -92,6 +117,15 @@ server.on('connection', function (sock) {
   web.on('close',function () {
     console.log('conexión con web perdida...');
     sock.write('conexión con web perdida...');
+  });
+
+  pagos.on('data',function (data) {
+    sock.write('PAGOS: ' + data + '\n');
+  });
+
+  pagos.on('close',function () {
+    console.log('conexión con pagos perdida...');
+    sock.write('conexión con pagos perdida...');
   });
 
 });
