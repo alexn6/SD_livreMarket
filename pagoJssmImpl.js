@@ -6,11 +6,11 @@ var StateMachineHistory = require('javascript-state-machine/lib/history')
 var PagosJssm = require('javascript-state-machine').factory({
   init: 'compraConfirmada',
   transitions: [
-    {name:'autorizarPago',                  from:'compraConfirmada',                                to:'resolviendoAutorizacionPago'},
+    {name:'autorizarPago',                  from:['compraConfirmada', 'autorizandoPago'],                                to:'resolviendoAutorizacionPago'},
     {name:'resolverAutorizacionPago',       from:'resolviendoAutorizacionPago',                     to:'informandoAutorizacionPago'},
     // deberia devolver(to) "pagorechazado" o "pagoAutorizado"
     // para que tome el estado inicial(from) el SRV_CMPRAS 
-    {name:'informarAutorizacionPago',       from:'informandoAutorizacionPago',                      to:'autorizandoPago'}
+    {name:'informarAutorizacionPago',       from:'informandoAutorizacionPago',                      to:'autorizacionPagoInformado'}
     // {name:'informarAutorizacionPago',       from:'informandoAutorizacionPago',                      to:function (data) {return toAutorizacionResuelta(data)}}
   ],
 
@@ -41,7 +41,8 @@ var PagosJssm = require('javascript-state-machine').factory({
 
     onResolverAutorizacionPago: function (lifeCycle,data) {
       //console.log('onResolverInfraccion: data --> ',data);
-      this.compra.pagoAutorizado = Math.random() > 0.7 ? true : false;
+      // this.compra.pagoAutorizado = Math.random() > 0.7 ? true : false;
+      this.compra.pagoAutorizado = true;
       return ['informarAutorizacionPago'];
     },
 

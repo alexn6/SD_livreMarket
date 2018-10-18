@@ -48,7 +48,8 @@ var WebJssm = require('javascript-state-machine').factory({
 
     onResolverEntrega: function (lifeCycle,data) {
       //console.log('onResolverpublicacion: data --> ',data);
-      this.compra.formaEntrega = Math.random() > 0.5 ? 'retira' : 'correo';
+      // this.compra.formaEntrega = Math.random() > 0.5 ? 'retira' : 'correo';
+      this.compra.formaEntrega = 'correo';
       return ['informarEntregaSeleccionada'];
     },
 
@@ -103,7 +104,7 @@ var WebJssm = require('javascript-state-machine').factory({
         console.log("SERV_WEB: se le notifico al usuario que la compra fue cancelada xq se detecto una INFRACCION.");
       }
       else{
-        if(this.compra.hasInfraccion){
+        if(!this.compra.pagoAutorizado){
           console.log("SERV_WEB: se le notifico al usuario que la compra fue cancelada. PAGO RECHAZADO!");
         }
       }

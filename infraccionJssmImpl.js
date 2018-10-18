@@ -50,6 +50,7 @@ var InfraccionesJssm = require('javascript-state-machine').factory({
       msg.data = this.compra;
       msg.tarea = lifeCycle.transition;
       publicar('compras',JSON.stringify(msg));
+      publicar('publicaciones',JSON.stringify(msg));
       return false;
     },
 

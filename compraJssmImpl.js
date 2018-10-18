@@ -19,7 +19,8 @@ var ComprasJssm = require('javascript-state-machine').factory({
     {name:'informarInfraccion',       from:'*',                                               to: function (data) {return toTransitionInfraccion(data)}},
     {name:'calcularCosto',            from:'entregaSeleccionada',                             to:'calculandoCosto'},
     {name:'informarCostoCalculado',   from:['calculandoCosto','entregaSeleccionada',
-                                            'compraConfirmada', 'cancelandoCompra'],                              to:'costoCalculado'},
+                                            'compraConfirmada', 'cancelandoCompra', 
+                                            'compraSinInfraccion'],                              to:'costoCalculado'},
     {name:'seleccionarPago',          from:['entregaSeleccionada','costoCalculado'],          to:'seleccionandoPago'},
     {name:'informarPagoSeleccionado', from:['seleccionandoPago', 'compraSinInfraccion'],                               to:'pagoSeleccionado'},
     {name:'confirmarCompra',          from:'*',                                               to:'compraConfirmada'},
@@ -81,7 +82,7 @@ var ComprasJssm = require('javascript-state-machine').factory({
       // se cancela la transicion
       if(_.contains(this.history,'compraConInfraccion')){
         console.log('onBeforeTransition history: ',this.history);
-        console.log("Se cancela la transicion <informarCostoCalculado> xq se cancelo la compra");
+        console.log("Se cancela la transicion <informarEntregaSeleccionada> xq se cancelo la compra");
         return false;
       }
     },
@@ -206,7 +207,6 @@ var ComprasJssm = require('javascript-state-machine').factory({
       var msg =  {};
       msg.data = this.compra;
       msg.tarea = lifeCycle.transition;
-      console.log("SRV_COMPRAS: mje enviado a SRV_PAGOS --> "+JSON.stringify(msg));
       publicar('pagos',JSON.stringify(msg));
       return false;
     },

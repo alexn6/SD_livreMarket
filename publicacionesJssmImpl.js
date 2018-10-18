@@ -74,11 +74,13 @@ var PublicacionesJssm = require('javascript-state-machine').factory({
        if (_.contains(this.history,'productoLiberado')) {
          // si ya fue liberado no hago nada ni doy error.
          // La compra ya esta en estado terminal.
+         console.log("El producto ya fue liberado: nose hace nada");
          return false;
        }
 
        this.compra.hasInfraccion = _.pick(data,'hasInfraccion').hasInfraccion;
        if (this.compra.hasInfraccion) {
+         console.log("COMPRA_CON_INFRACCION --> liberarProducto()");
          return ['liberarProducto'];
        } else {
          return ['confirmarProducto'];
@@ -100,6 +102,7 @@ var PublicacionesJssm = require('javascript-state-machine').factory({
       if (_.contains(this.history,'productoLiberado')) {
         // si ya fue liberado no hago nada ni doy error.
         // La compra ya esta en estado terminal.
+        console.log("El producto ya fue liberado: nose hace nada");
         return false;
       }
 
@@ -130,12 +133,12 @@ var PublicacionesJssm = require('javascript-state-machine').factory({
       if (_.contains(this.history,'productoLiberado')) {
         // si ya fue liberado no hago nada ni doy error.
         // La compra ya esta en estado terminal.
+        console.log("El producto ya fue liberado: nose hace nada");
         return false;
       }
 
       // actualiza la forma de entrega del producto
       this.compra.formaEntrega = _.pick(data,'formaEntrega').formaEntrega;
-
       this.compra.agendaEnvio = _.pick(data,'agendaEnvio').agendaEnvio;
       return ['confirmarProducto'];
     },
@@ -156,11 +159,14 @@ var PublicacionesJssm = require('javascript-state-machine').factory({
       if (_.contains(this.history,'productoLiberado')) {
         // si ya fue liberado no hago nada ni doy error.
         // La compra ya esta en estado terminal.
+        console.log("ERROR!!! ---> El producto fue liberado");
         return false;
       }
 
-      this.compra.stock = Math.random() > 0.7 ? false : true;
+      // this.compra.stock = Math.random() > 0.7 ? false : true;
+      this.compra.stock = true;
       if (!this.compra.stock) {
+        console.log("ERROR!! --> No hay stock disponible del producto");
         return ['liberarProducto'];
       } else {
         return ['confirmarProducto'];
@@ -177,14 +183,22 @@ var PublicacionesJssm = require('javascript-state-machine').factory({
      * @return {type}           description
      */
     onLiberarProducto: function (lifeCycle,data) {
-      if (this.compra.hasInfraccion) {
-        this.compra.motivoLiberacion = '-Compra con infracción';
+      // ************************** agregado por mi ************************
+      this.compra.hasInfraccion = _.pick(data,'hasInfraccion').hasInfraccion;
+      this.compra.pagoAutorizado = _.pick(data,'pagoAutorizado').pagoAutorizado;
+      this.compra.stock = _.pick(data,'stock').stock;
+      // *******************************************************************
+      if ((typeof(this.compra.hasInfraccion) != 'undefined')&&(this.compra.hasInfraccion)) {
+        this.compra.motivoLiberacion = '- Compra con infracción';
+        console.log("LberarProducto() --> se detecto una INFRACCION");
       }
-      if (!this.compra.pagoAutorizado) {
-        this.compra.motivoLiberacion += '-Pago rechazado';
+      if ((typeof(this.compra.pagoAutorizado) != 'undefined')&&(!this.compra.pagoAutorizado)) {
+        this.compra.motivoLiberacion += '- Pago rechazado';
+        console.log("LberarProducto() --> PAGO RECHAZADO: "+this.compra.pagoAutorizado);
       }
-      if (!this.compra.stock) {
-        this.compra.motivoLiberacion += '-producto sin stock';
+      if ((typeof(this.compra.stock) != 'undefined')&&(!this.compra.stock)) {
+        this.compra.motivoLiberacion += '- Producto sin stock';
+        console.log("LberarProducto() --> no hay STOCK");
       }
 
       return false;
