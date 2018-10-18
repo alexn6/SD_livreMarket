@@ -14,16 +14,17 @@ var ComprasJssm = require('javascript-state-machine').factory({
     {name:'reservarProducto',         from:['compraGenerada','seleccionandoEntrega',
                                             'detectandoInfracciones'],                        to:'reservandoProducto'},
     {name:'informarEntregaSeleccionada',from:['seleccionandoEntrega','detectandoInfracciones',
-                          'reservandoProducto','compraSininfraccion','compraConInfraccion'],  to:'entregaSeleccionada'},
+                                            'reservandoProducto','compraSinInfraccion',
+                                            'compraConInfraccion', 'cancelandoCompra'],       to:'entregaSeleccionada'},
     {name:'informarInfraccion',       from:'*',                                               to: function (data) {return toTransitionInfraccion(data)}},
     {name:'calcularCosto',            from:'entregaSeleccionada',                             to:'calculandoCosto'},
     {name:'informarCostoCalculado',   from:['calculandoCosto','entregaSeleccionada',
-                                            'compraConfirmada'],                              to:'costoCalculado'},
+                                            'compraConfirmada', 'cancelandoCompra'],                              to:'costoCalculado'},
     {name:'seleccionarPago',          from:['entregaSeleccionada','costoCalculado'],          to:'seleccionandoPago'},
-    {name:'informarPagoSeleccionado', from:'seleccionandoPago',                               to:'pagoSeleccionado'},
+    {name:'informarPagoSeleccionado', from:['seleccionandoPago', 'compraSinInfraccion'],                               to:'pagoSeleccionado'},
     {name:'confirmarCompra',          from:'*',                                               to:'compraConfirmada'},
     {name:'cancelarCompra',           from:['compraConInfraccion','pagoRechazado'],           to:'cancelandoCompra'},
-    {name:'informarCompraCancelada',  from:'cancelandoCompra',                                to:'compraCancelada'},
+    // {name:'informarCompraCancelada',  from:'cancelandoCompra',                                to:'compraCancelada'},
     {name:'autorizarPago',            from:'compraConfirmada',                                to:'autorizandoPago'},
     {name:'informarAutorizacionPago', from:'autorizandoPago',                                 to: function (data) {return toTransitionPago(data)}},
     {name:'agendarEnvio',             from:'pagoAutorizado',                                  to:'agendandoEnvio'},
@@ -47,6 +48,42 @@ var ComprasJssm = require('javascript-state-machine').factory({
       // console.log('onTransition to: ',lifeCycle.to);
       // console.log('onTransition data: ',data);
       console.log('onTransition history: ',this.history);
+    },
+
+    // onBeforeTransition: function (lifeCycle,data){
+    //   // se cancela la transicion
+    //   if(_.contains(this.history,'compraConInfraccion')){
+    //     console.log('onBeforeTransition history: ',this.history);
+    //     console.log("Se cancela la transicion xq se cancelo la compra");
+    //     return false;
+    //   }
+    // },
+
+    onBeforeInformarPagoSeleccionado: function (lifeCycle,data){
+       // se cancela la transicion
+       if(_.contains(this.history,'compraConInfraccion')){
+         console.log('onBeforeTransition history: ',this.history);
+         console.log("Se cancela la transicion <informarPagoSeleccionado> xq se cancelo la compra");
+         return false;
+       }
+    },
+
+    onBeforeInformarCostoCalculado: function (lifeCycle,data){
+      // se cancela la transicion
+      if(_.contains(this.history,'compraConInfraccion')){
+        console.log('onBeforeTransition history: ',this.history);
+        console.log("Se cancela la transicion <informarCostoCalculado> xq se cancelo la compra");
+        return false;
+      }
+    },
+
+    onBeforeInformarEntregaSeleccionada: function (lifeCycle,data){
+      // se cancela la transicion
+      if(_.contains(this.history,'compraConInfraccion')){
+        console.log('onBeforeTransition history: ',this.history);
+        console.log("Se cancela la transicion <informarCostoCalculado> xq se cancelo la compra");
+        return false;
+      }
     },
 
     // onEnterState: function (lifeCycle,data) {
@@ -115,7 +152,9 @@ var ComprasJssm = require('javascript-state-machine').factory({
       var msg =  {};
       msg.data = this.compra;
       msg.tarea = lifeCycle.transition;
-      publicar('web',JSON.stringify(msg));
+      // if(!(_.contains(this.history,'compraConInfraccion'))){
+        publicar('web',JSON.stringify(msg));
+      // }
       return false;
     },
 
@@ -125,11 +164,14 @@ var ComprasJssm = require('javascript-state-machine').factory({
     },
 
     onInformarInfraccion: function (lifeCycle,data) {
-      this.compra.hasInfraccion = _.pick(data,'haspInfraccion').hasInfraccion;
+      this.compra.hasInfraccion = _.pick(data,'hasInfraccion').hasInfraccion;
       if (this.compra.hasInfraccion) {
+        console.log("SERV_COMPRA: se va a cancelarCompra xq se detecta una infraccion");
         return ['cancelarCompra'];
       } else {
-        return ['confirmarCompra'];
+        if(_.contains(this.history,'pagoSeleccionado')){
+          return ['confirmarCompra'];
+        }
       }
       return false;
     },
@@ -140,8 +182,10 @@ var ComprasJssm = require('javascript-state-machine').factory({
     },
 
     onConfirmarCompra: function (lifeCycle,data) {
+      // console.log("Info pagoSeleccionado: "+_.contains(this.history,'pagoSeleccionado'));
+      // console.log("Info compraSinInfraccion: "+_.contains(this.history,'compraSinInfraccion'));
       // sincronizar mensaje de respuesta de infracciones y pago seleccionado
-      if (_.contains(this.history,'pagoSeleccionado') && _.contains(this.history,'compraSininfraccion')) {
+      if (_.contains(this.history,'pagoSeleccionado') && _.contains(this.history,'compraSinInfraccion')) {
         // ya pasó por los estados de pago seleccionado e infraccion resuelta ok. prosigo con la máquina
         return ['autorizarPago'];
       } else {
@@ -168,13 +212,24 @@ var ComprasJssm = require('javascript-state-machine').factory({
     },
 
     onInformarAutorizacionPago: function (lifeCycle,data) {
+      // recupera el dato para comprobar su valor
       this.compra.pagoAutorizado = _.pick(data,'pagoAutorizado').pagoAutorizado;
+      // ################ agregado nuevo #####################
+      // en FALSE: agregar una nueva transicion <InformarPagoRechazado>
+      if (this.compra.pagoAutorizado) {
+        return ['confirmarCompra'];
+      } else {
+        console.log("SERV_COMPRA: se va a cancelarCompra xq NO se autoriza el pago");
+        return ['cancelarCompra'];
+      }
+      // #####################################################
       return false;
     },
 
     onPagoRechazado: function (lifeCycle,data) {
       // el estado de pago e srechazado, se cancela l acompra
       this.compra.motivo = 'pago rechazado';
+      console.log("SERV_COMPRA: se va a cancelarCompra xq el pago fue rechazado");
       return ['cancelarCompra'];
     },
 
@@ -191,6 +246,15 @@ var ComprasJssm = require('javascript-state-machine').factory({
       return ['finalizarCompra'];
     }
 
+    // ###################### AGREGADO #######################
+    // onInformarCompraCancelada: function (lifeCycle,data) {
+    //   var msg =  {};
+    //   msg.data = this.compra;
+    //   msg.tarea = lifeCycle.transition;
+    //   publicar('web',JSON.stringify(msg));
+    //   return false;
+    // },
+    // #######################################################
   }
 
 });
@@ -212,7 +276,7 @@ function toTransitionInfraccion(data) {
   if (_.pick(data,'hasInfraccion').hasInfraccion) {
     return 'compraConInfraccion';
   } else {
-    return 'compraSininfraccion';
+    return 'compraSinInfraccion';
   }
 };
 

@@ -176,7 +176,7 @@ var PublicacionesJssm = require('javascript-state-machine').factory({
      * @param  {type} data      description
      * @return {type}           description
      */
-    onliberarProducto: function (lifeCycle,data) {
+    onLiberarProducto: function (lifeCycle,data) {
       if (this.compra.hasInfraccion) {
         this.compra.motivoLiberacion = '-Compra con infracción';
       }

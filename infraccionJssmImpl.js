@@ -8,8 +8,8 @@ var InfraccionesJssm = require('javascript-state-machine').factory({
   transitions: [
     {name:'detectarInfracciones',     from:'compraGenerada',                                  to:'resolviendoInfraccion'},
     {name:'resolverInfraccion',       from:'resolviendoInfraccion',                           to:'informandoInfraccion'},
-    {name:'informarInfraccion',       from:'informandoInfraccion',                            to:function (data) {return toInfraccionResuelta(data)}},
-    {name:'reintentarInfraccion',     from:['compraSinInfraccion','compraConInfraccion'],     to:function (data) {return toInfraccionResuelta(data)}}
+    {name:'informarInfraccion',       from:'informandoInfraccion',                            to:function (data) {return toInfraccionResuelta(data)}}
+    // {name:'reintentarInfraccion',     from:['compraSinInfraccion','compraConInfraccion'],     to:function (data) {return toInfraccionResuelta(data)}}
   ],
 
   data: {
@@ -39,7 +39,9 @@ var InfraccionesJssm = require('javascript-state-machine').factory({
 
     onResolverInfraccion: function (lifeCycle,data) {
       //console.log('onResolverInfraccion: data --> ',data);
-      this.compra.hasInfraccion = Math.random() > 0.7 ? true : false;
+      // this.compra.hasInfraccion = Math.random() > 0.7 ? true : false;
+      // this.compra.hasInfraccion = true;
+      this.compra.hasInfraccion = false;
       return ['informarInfraccion'];
     },
 

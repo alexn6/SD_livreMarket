@@ -6,10 +6,12 @@ var StateMachineHistory = require('javascript-state-machine/lib/history')
 var PagosJssm = require('javascript-state-machine').factory({
   init: 'compraConfirmada',
   transitions: [
-    {name:'detectarInfraccionesCompra',     from:'compraConfirmada',                                to:'resolviendoAutorizacionPago'},
-    {name:'resolverInfraccionCompra',       from:'resolviendoAutorizacionPago',                     to:'informandoAutorizacionPago'},
-    {name:'informarAutorizacionPago',       from:'informandoAutorizacionPago',                      to:function (data) {return toAutorizacionResuelta(data)}}
-    // {name:'reintentarInfraccion',     from:['compraSinInfraccion','compraConInfraccion'],     to:function (data) {return toInfraccionResuelta(data)}}
+    {name:'autorizarPago',                  from:'compraConfirmada',                                to:'resolviendoAutorizacionPago'},
+    {name:'resolverAutorizacionPago',       from:'resolviendoAutorizacionPago',                     to:'informandoAutorizacionPago'},
+    // deberia devolver(to) "pagorechazado" o "pagoAutorizado"
+    // para que tome el estado inicial(from) el SRV_CMPRAS 
+    {name:'informarAutorizacionPago',       from:'informandoAutorizacionPago',                      to:'autorizandoPago'}
+    // {name:'informarAutorizacionPago',       from:'informandoAutorizacionPago',                      to:function (data) {return toAutorizacionResuelta(data)}}
   ],
 
   data: {
@@ -31,13 +33,13 @@ var PagosJssm = require('javascript-state-machine').factory({
       console.log('onTransition history: ',this.history);
     },
 
-    onDetectarInfraccionesCompra: function (lifeCycle,data) {
+    onAutorizarPago: function (lifeCycle,data) {
       //console.log('onDetectarInfracciones: data --> ',data);
       this.compra = data;
-      return ['resolverInfraccionCompra'];
+      return ['resolverAutorizacionPago'];
     },
 
-    onResolverInfraccionCompra: function (lifeCycle,data) {
+    onResolverAutorizacionPago: function (lifeCycle,data) {
       //console.log('onResolverInfraccion: data --> ',data);
       this.compra.pagoAutorizado = Math.random() > 0.7 ? true : false;
       return ['informarAutorizacionPago'];

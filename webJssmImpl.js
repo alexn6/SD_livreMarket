@@ -10,11 +10,15 @@ var WebJssm = require('javascript-state-machine').factory({
     {name:'solicitarEntrega',         from:'*',                                               to:'resolviendoEntrega'},
     {name:'resolverEntrega',          from:'resolviendoEntrega',                              to:'informandoEntrega'},
     {name:'informarEntregaSeleccionada',from:'informandoEntrega',                             to:'entregaInformada'},
-    {name:'reintentarEntrega',        from:'entregaInformada',                                to:'entregaInformada'},
+    // {name:'reintentarEntrega',        from:'entregaInformada',                                to:'entregaInformada'},
     // ultima transicion agregada
     {name:'seleccionarPago',          from:'*',                                               to:'resolviendoPago'},
     {name:'resolverPago',             from:'resolviendoPago',                                 to:'informandoPago'},
-    {name:'informarPagoSeleccionado', from:'informandoPago',                                  to:'pagoInformado'}
+    {name:'informarPagoSeleccionado', from:'informandoPago',                                  to:'seleccionandoPago'},
+    // otra transaccion
+    // {name:'cancelarCompra',           from:['compraConInfraccion','pagoRechazado'],           to:'informandoCancelacion'},
+    {name:'cancelarCompra',           from:'*',                                               to:'informandoCancelacion'},
+    {name:'informarCompraCancelada',  from:'informandoCancelacion',                           to:'cancelInformada'}
   ],
 
   data: {
@@ -79,6 +83,30 @@ var WebJssm = require('javascript-state-machine').factory({
       msg.data = this.compra;
       msg.tarea = lifeCycle.transition;
       publicar('compras',JSON.stringify(msg));
+      return false;
+    },
+
+    onCancelarCompra: function (lifeCycle,data) {
+      //console.log('onResolverpublicacion: data --> ',data);
+      this.compra = data;
+      return ['informarCompraCancelada'];
+    },
+
+    onInformarCompraCancelada: function (lifeCycle,data) {
+      // var msg =  {};
+      // msg.data = this.compra;
+      // msg.tarea = lifeCycle.transition;
+      // publicar('compras',JSON.stringify(msg));
+      this.compra.hasInfraccion = _.pick(data,'hasInfraccion').hasInfraccion;
+      this.compra.pagoAutorizado = _.pick(data,'pagoAutorizado').pagoAutorizado;
+      if(this.compra.hasInfraccion){
+        console.log("SERV_WEB: se le notifico al usuario que la compra fue cancelada xq se detecto una INFRACCION.");
+      }
+      else{
+        if(this.compra.hasInfraccion){
+          console.log("SERV_WEB: se le notifico al usuario que la compra fue cancelada. PAGO RECHAZADO!");
+        }
+      }
       return false;
     }
 
