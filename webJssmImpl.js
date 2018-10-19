@@ -18,7 +18,8 @@ var WebJssm = require('javascript-state-machine').factory({
     // otra transaccion
     // {name:'cancelarCompra',           from:['compraConInfraccion','pagoRechazado'],           to:'informandoCancelacion'},
     {name:'cancelarCompra',           from:'*',                                               to:'informandoCancelacion'},
-    {name:'informarCompraCancelada',  from:'informandoCancelacion',                           to:'cancelInformada'}
+    {name:'informarCompraCancelada',  from:'informandoCancelacion',                           to:'cancelInformada'},
+    {name:'informarCompraRegistrada',  from:'*',                                              to:'compraConExito'}
   ],
 
   data: {
@@ -49,7 +50,8 @@ var WebJssm = require('javascript-state-machine').factory({
     onResolverEntrega: function (lifeCycle,data) {
       //console.log('onResolverpublicacion: data --> ',data);
       // this.compra.formaEntrega = Math.random() > 0.5 ? 'retira' : 'correo';
-      this.compra.formaEntrega = 'correo';
+      // this.compra.formaEntrega = 'correo';
+      this.compra.formaEntrega = 'retira';
       return ['informarEntregaSeleccionada'];
     },
 
@@ -108,6 +110,11 @@ var WebJssm = require('javascript-state-machine').factory({
           console.log("SERV_WEB: se le notifico al usuario que la compra fue cancelada. PAGO RECHAZADO!");
         }
       }
+      return false;
+    },
+
+    onInformarCompraRegistrada: function (lifeCycle,data) {
+      console.log('xxxxxxxxxxx SERV_WEB: La compra n°'+this.compra.compraId+' fue registrada con exito xxxxxxxxxxx');
       return false;
     }
 

@@ -247,7 +247,13 @@ var ComprasJssm = require('javascript-state-machine').factory({
     },
 
     onConfirmarCompraFinal: function(lifeCycle,data){
-      console.log(">>> SERV_COMPRAS: se confirma finalmente la compra <<<<");
+      console.log(">>> SERV_COMPRAS: se confirma finalmente la compra n°"+this.compra.compraId+" <<<<");
+      // se le notifica al usuario que la compra fue registrada con exito
+      var msg =  {};
+      msg.data = this.compra;
+      // msg.tarea = lifeCycle.transition;
+      msg.tarea = 'informarCompraRegistrada';
+      publicar('web',JSON.stringify(msg));
       return ['finalizarCompra'];
     },
 
@@ -273,7 +279,7 @@ var ComprasJssm = require('javascript-state-machine').factory({
 
     // ###################### hacer finalizarCompra() #######################
     onFinalizarCompra: function(lifeCycle,data) {
-      console.log("SERV_COMPRAS: la compra fue realizada exitosamente!!");
+      console.log("************ SERV_COMPRAS: la compra N°"+this.compra.compraId+" fue realizada exitosamente!! ************");
       return false;
     }
 

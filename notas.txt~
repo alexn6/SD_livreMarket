@@ -7,3 +7,11 @@
 
 SRV_COMPRAS --> [x] Sent web: '{"data":{"producto":"producto1","cliente":"cliente1","compraId":0,"formaEntrega":"retira"},"tarea":"seleccionarPago"}'
 
+SRV_COMPRAS"
+cuando se qeda en el estado compraSininfraccion y yega la transicion "informarCostoCalculado" se ROMPE xq de esa transicion no puede partir (from) de ese estado --> los estados posibles son ['calculandoCosto','entregaSeleccionada','compraConfirmada']  ===> ver con el diagrama de las maquinas de estados de cada servidor
+
+############### 19/10 ###############
+Funcionando:
+- Compra cancelada por infraccion (hasInfraccion=true): controlado los mjes de salida y yegada desp de cancelar
+- Compra cancelada por no autorizar el pago (hasInfraccion=false, pagoAutorizado=false): controlado los mjes de salida y yegada desp de cancelar
+- Compra exitosa envio por correo(hasInfraccion=false, pagoAutorizado=true, formaEnvio=correo, costo=nroFijo)
