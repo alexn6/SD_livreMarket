@@ -28,8 +28,12 @@ var ComprasJssm = require('javascript-state-machine').factory({
     // {name:'informarCompraCancelada',  from:'cancelandoCompra',                                to:'compraCancelada'},
     {name:'autorizarPago',            from:'compraConfirmada',                                to:'autorizandoPago'},
     {name:'informarAutorizacionPago', from:'autorizandoPago',                                 to: function (data) {return toTransitionPago(data)}},
+    // ********************************** ultima agregada **********************************
+    {name:'confirmarCompraFinal',     from:'pagoAutorizado',                                 to: 'confirmadaCompraFinal'},
+    // *************************************************************************************
     {name:'agendarEnvio',             from:'pagoAutorizado',                                  to:'agendandoEnvio'},
-    {name:'finalizarCompra',          from:['pagoAutorizado','agendandoEnvio'],               to:'compraFinalizada'}
+    {name:'finalizarCompra',          from:['pagoAutorizado','agendandoEnvio',
+                                            'confirmadaCompraFinal'],                       to:'compraFinalizada'}
   ],
 
   data: {
@@ -217,13 +221,18 @@ var ComprasJssm = require('javascript-state-machine').factory({
       // ################ agregado nuevo #####################
       // en FALSE: agregar una nueva transicion <InformarPagoRechazado>
       if (this.compra.pagoAutorizado) {
-        return ['confirmarCompra'];
+        return ['confirmarCompraFinal'];
       } else {
         console.log("SERV_COMPRA: se va a cancelarCompra xq NO se autoriza el pago");
         return ['cancelarCompra'];
       }
       // #####################################################
       return false;
+    },
+
+    onConfirmarCompraFinal: function(lifeCycle,data){
+      console.log(">>> SERV_COMPRAS: se confirma finalmente la compra <<<<");
+      return ['finalizarCompra'];
     },
 
     onPagoRechazado: function (lifeCycle,data) {
@@ -244,6 +253,12 @@ var ComprasJssm = require('javascript-state-machine').factory({
       msg.tarea = lifeCycle.transition;
       publicar('envios',JSON.stringify(msg));
       return ['finalizarCompra'];
+    },
+
+    // ###################### hacer finalizarCompra() #######################
+    onFinalizarCompra: function(lifeCycle,data) {
+      console.log("SERV_COMPRAS: la compra fue realizada exitosamente!!");
+      return false;
     }
 
     // ###################### AGREGADO #######################
