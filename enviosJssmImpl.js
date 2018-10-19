@@ -8,7 +8,10 @@ var EnviosJssm = require('javascript-state-machine').factory({
   transitions: [
     {name:'calcularCosto',            from:'entregaSeleccionada',                             to:'resolviendoCosto'},
     {name:'resolverCosto',            from:'resolviendoCosto',                                to:'informandoCosto'},
-    {name:'informarCostoCalculado',   from:'informandoCosto',                                 to:'calculandoCosto'}
+    {name:'informarCostoCalculado',   from:'informandoCosto',                                 to:'costoInformado'},
+    // el * indica q en cualqie momento se puede agendar un envio
+    {name:'agendarEnvio',             from:'*',                                 to:'agendandoEnvio'},
+    {name:'informarEnvioAgendado',    from:'agendandoEnvio',                                 to:'envioAgendado'}
   ],
 
   data: {
@@ -49,6 +52,16 @@ var EnviosJssm = require('javascript-state-machine').factory({
         // tmb se deberia publicar el mensaje en el de publicaciones
         publicar('compras',JSON.stringify(msg));
         return false;
+    },
+
+    onAgendarEnvio: function (lifeCycle,data) {
+      this.compra.envioAgendado = true;
+      return ['informarEnvioAgendado'];
+    },
+
+    onInformarEnvioAgendado: function (lifeCycle,data) {
+      console.log('[Compra n°'+this.compra.compraId+'] ========> ENVIO AGENDADO');
+      return false;
     }
 
   }

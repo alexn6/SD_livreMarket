@@ -29,7 +29,7 @@ var ComprasJssm = require('javascript-state-machine').factory({
     {name:'autorizarPago',            from:'compraConfirmada',                                to:'autorizandoPago'},
     {name:'informarAutorizacionPago', from:'autorizandoPago',                                 to: function (data) {return toTransitionPago(data)}},
     // ********************************** ultima agregada **********************************
-    {name:'confirmarCompraFinal',     from:'pagoAutorizado',                                 to: 'confirmadaCompraFinal'},
+    {name:'confirmarCompraFinal',     from:['pagoAutorizado','agendandoEnvio'],                                 to: 'confirmadaCompraFinal'},
     // *************************************************************************************
     {name:'agendarEnvio',             from:'pagoAutorizado',                                  to:'agendandoEnvio'},
     {name:'finalizarCompra',          from:['pagoAutorizado','agendandoEnvio',
@@ -215,18 +215,34 @@ var ComprasJssm = require('javascript-state-machine').factory({
       return false;
     },
 
+    // onInformarAutorizacionPago: function (lifeCycle,data) {
+    //   // recupera el dato para comprobar su valor
+    //   this.compra.pagoAutorizado = _.pick(data,'pagoAutorizado').pagoAutorizado;
+    //   // ################ agregado nuevo #####################
+    //   // en FALSE: agregar una nueva transicion <InformarPagoRechazado>
+    //   if (this.compra.pagoAutorizado) {
+    //     return ['confirmarCompraFinal'];
+    //   } else {
+    //     console.log("SERV_COMPRA: se va a cancelarCompra xq NO se autoriza el pago");
+    //     return ['cancelarCompra'];
+    //   }
+    //   // #####################################################
+    //   return false;
+    // },
+
     onInformarAutorizacionPago: function (lifeCycle,data) {
       // recupera el dato para comprobar su valor
       this.compra.pagoAutorizado = _.pick(data,'pagoAutorizado').pagoAutorizado;
-      // ################ agregado nuevo #####################
-      // en FALSE: agregar una nueva transicion <InformarPagoRechazado>
+      this.compra.formaEntrega = _.pick(data,'formaEntrega').formaEntrega;
       if (this.compra.pagoAutorizado) {
+        if(this.compra.formaEntrega == 'correo'){
+          return ['agendarEnvio','confirmarCompraFinal'];
+        }
         return ['confirmarCompraFinal'];
       } else {
         console.log("SERV_COMPRA: se va a cancelarCompra xq NO se autoriza el pago");
         return ['cancelarCompra'];
       }
-      // #####################################################
       return false;
     },
 
@@ -252,7 +268,7 @@ var ComprasJssm = require('javascript-state-machine').factory({
       msg.data = this.compra;
       msg.tarea = lifeCycle.transition;
       publicar('envios',JSON.stringify(msg));
-      return ['finalizarCompra'];
+      // return ['finalizarCompra'];
     },
 
     // ###################### hacer finalizarCompra() #######################
