@@ -171,7 +171,7 @@ var ComprasJssm = require('javascript-state-machine').factory({
     onInformarInfraccion: function (lifeCycle,data) {
       this.compra.hasInfraccion = _.pick(data,'hasInfraccion').hasInfraccion;
       if (this.compra.hasInfraccion) {
-        console.log("SERV_COMPRA: se va a cancelarCompra xq se detecta una infraccion");
+        // console.log("SERV_COMPRA: se va a cancelarCompra xq se detecta una infraccion");
         return ['cancelarCompra'];
       } else {
         if(_.contains(this.history,'pagoSeleccionado')){
@@ -260,7 +260,6 @@ var ComprasJssm = require('javascript-state-machine').factory({
     onPagoRechazado: function (lifeCycle,data) {
       // el estado de pago e srechazado, se cancela l acompra
       this.compra.motivo = 'pago rechazado';
-      console.log("SERV_COMPRA: se va a cancelarCompra xq el pago fue rechazado");
       return ['cancelarCompra'];
     },
 

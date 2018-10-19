@@ -1,0 +1,20 @@
+{
+    "compraConInfraccion" : {
+      "hasInfraccion" : true,
+      "formaEntrega" : "correo",
+      "pagoAutorizado" : true,
+      "stock" : true
+    },
+    "compraPagoRechazado" : {
+      "hasInfraccion" : false,
+      "formaEntrega" : "correo",
+      "pagoAutorizado" : false,
+      "stock" : true
+    },
+    "compraExitosaPorCorreo" : {
+      "hasInfraccion" : false,
+      "formaEntrega" : "correo",
+      "pagoAutorizado" : true,
+      "stock" : true
+    }
+}

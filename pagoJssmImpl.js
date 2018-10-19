@@ -1,5 +1,11 @@
 var amqp = require('amqplib/callback_api');
 var amqp_url = require('./properties.json').amqp.url;
+
+// recuperamoslos datos corrspondiente a cada escenario
+//var datosSimulacion = require('./datosSimulacion.json').compraConInfraccion;
+//var datosSimulacion = require('./datosSimulacion.json').compraPagoRechazado;
+var datosSimulacion = require('./datosSimulacion.json').compraExitosaPorCorreo;
+
 var _ = require("underscore");
 var StateMachineHistory = require('javascript-state-machine/lib/history')
 
@@ -42,7 +48,8 @@ var PagosJssm = require('javascript-state-machine').factory({
     onResolverAutorizacionPago: function (lifeCycle,data) {
       //console.log('onResolverInfraccion: data --> ',data);
       // this.compra.pagoAutorizado = Math.random() > 0.7 ? true : false;
-      this.compra.pagoAutorizado = true;
+      //this.compra.pagoAutorizado = true;
+      this.compra.pagoAutorizado = datosSimulacion.pagoAutorizado;
       return ['informarAutorizacionPago'];
     },
 

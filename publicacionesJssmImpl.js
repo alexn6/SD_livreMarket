@@ -1,5 +1,11 @@
 var amqp = require('amqplib/callback_api');
 var amqp_url = require('./properties.json').amqp.url;
+
+// recuperamoslos datos corrspondiente a cada escenario
+//var datosSimulacion = require('./datosSimulacion.json').compraConInfraccion;
+//var datosSimulacion = require('./datosSimulacion.json').compraPagoRechazado;
+var datosSimulacion = require('./datosSimulacion.json').compraExitosaPorCorreo;
+
 var _ = require("underscore");
 var StateMachineHistory = require('javascript-state-machine/lib/history')
 
@@ -186,7 +192,9 @@ var PublicacionesJssm = require('javascript-state-machine').factory({
       }
 
       // this.compra.stock = Math.random() > 0.7 ? false : true;
-      this.compra.stock = true;
+      // this.compra.stock = true;
+      this.compra.stock = datosSimulacion.stock;
+      
       if (!this.compra.stock) {
         console.log("ERROR!! --> No hay stock disponible del producto");
         return ['liberarProducto'];
@@ -216,7 +224,7 @@ var PublicacionesJssm = require('javascript-state-machine').factory({
       }
       if ((typeof(this.compra.pagoAutorizado) != 'undefined')&&(!this.compra.pagoAutorizado)) {
         this.compra.motivoLiberacion += '- Pago rechazado';
-        console.log("LberarProducto() --> PAGO RECHAZADO: "+this.compra.pagoAutorizado);
+        console.log("LberarProducto() --> PAGO RECHAZADO");
       }
       if ((typeof(this.compra.stock) != 'undefined')&&(!this.compra.stock)) {
         this.compra.motivoLiberacion += '- Producto sin stock';
@@ -258,7 +266,7 @@ var PublicacionesJssm = require('javascript-state-machine').factory({
 
     onEntregarProducto: function (lifeCycle,data) {
       // Llegamos al final, nada que hacer, sólo cambiar el estado
-      console.log("++++++++++++ SERV_ENVIOS: el producto de la compra N°"+this.compra.compraId+" fue entregado ++++++++++++");
+      console.log("++++++++++++ SERV_PUBLICACIONES: el producto de la compra N°"+this.compra.compraId+" fue entregado ++++++++++++");
       return false;
     }
 

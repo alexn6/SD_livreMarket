@@ -1,6 +1,11 @@
 var amqp = require('amqplib/callback_api');
 var amqp_url = require('./properties.json').amqp.url;
 
+// recuperamoslos datos corrspondiente a cada escenario
+//var datosSimulacion = require('./datosSimulacion.json').compraConInfraccion;
+//var datosSimulacion = require('./datosSimulacion.json').compraPagoRechazado;
+var datosSimulacion = require('./datosSimulacion.json').compraExitosaPorCorreo;
+
 var _ = require("underscore");
 var StateMachineHistory = require('javascript-state-machine/lib/history')
 
@@ -50,7 +55,8 @@ var WebJssm = require('javascript-state-machine').factory({
     onResolverEntrega: function (lifeCycle,data) {
       //console.log('onResolverpublicacion: data --> ',data);
       // this.compra.formaEntrega = Math.random() > 0.5 ? 'retira' : 'correo';
-      this.compra.formaEntrega = 'correo';
+      // this.compra.formaEntrega = 'correo';
+      this.compra.formaEntrega = datosSimulacion.formaEntrega;
       // this.compra.formaEntrega = 'retira';
       return ['informarEntregaSeleccionada'];
     },
