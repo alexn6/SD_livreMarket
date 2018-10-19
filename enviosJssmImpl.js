@@ -11,7 +11,7 @@ var EnviosJssm = require('javascript-state-machine').factory({
     {name:'informarCostoCalculado',   from:'informandoCosto',                                 to:'costoInformado'},
     // el * indica q en cualqie momento se puede agendar un envio
     {name:'agendarEnvio',             from:'*',                                 to:'agendandoEnvio'},
-    {name:'informarEnvioAgendado',    from:'agendandoEnvio',                                 to:'envioAgendado'}
+    {name:'informarAgendaEnvio',    from:'agendandoEnvio',                                 to:'envioAgendado'}
   ],
 
   data: {
@@ -55,12 +55,17 @@ var EnviosJssm = require('javascript-state-machine').factory({
     },
 
     onAgendarEnvio: function (lifeCycle,data) {
-      this.compra.envioAgendado = true;
-      return ['informarEnvioAgendado'];
+      this.compra.agendaEnvio = true;
+      return ['informarAgendaEnvio'];
     },
 
-    onInformarEnvioAgendado: function (lifeCycle,data) {
+    onInformarAgendaEnvio: function (lifeCycle,data) {
       console.log('[Compra n°'+this.compra.compraId+'] ========> ENVIO AGENDADO');
+      var msg =  {};
+      msg.data = this.compra;
+      msg.tarea = lifeCycle.transition;
+      // tmb se deberia publicar el mensaje en el de publicaciones
+      publicar('publicaciones',JSON.stringify(msg));
       return false;
     }
 

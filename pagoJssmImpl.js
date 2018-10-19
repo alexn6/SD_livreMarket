@@ -52,6 +52,7 @@ var PagosJssm = require('javascript-state-machine').factory({
       msg.tarea = lifeCycle.transition;
       // tmb se deberia publicar el mensaje en el de publicaciones
       publicar('compras',JSON.stringify(msg));
+      publicar('publicaciones',JSON.stringify(msg));
       return false;
     }
 

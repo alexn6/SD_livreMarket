@@ -50,8 +50,8 @@ var WebJssm = require('javascript-state-machine').factory({
     onResolverEntrega: function (lifeCycle,data) {
       //console.log('onResolverpublicacion: data --> ',data);
       // this.compra.formaEntrega = Math.random() > 0.5 ? 'retira' : 'correo';
-      // this.compra.formaEntrega = 'correo';
-      this.compra.formaEntrega = 'retira';
+      this.compra.formaEntrega = 'correo';
+      // this.compra.formaEntrega = 'retira';
       return ['informarEntregaSeleccionada'];
     },
 

@@ -12,6 +12,7 @@ var PublicacionesJssm = require('javascript-state-machine').factory({
     {name:'informarInfraccion',        from:'*',                                               to:'infraccionInformada'},
     // mensaje que llega async desde pagos no garantiza orden de llegada respecto del resto (infracción y agenda)
     {name:'informarPagoAutorizado',    from:'*',                                               to:'pagoInformado'},
+    {name:'informarAutorizacionPago',    from:'*',                                               to:'pagoInformado'},
     // mensaje que llega asyn desde envíos no garantiza orden de llegada respecto del resto (infracción y pagos)
     {name:'informarAgendaEnvio',       from:'*',                                               to:'agendaInformada'},
     {name:'liberarProducto',           from:['infraccionInformada','stockResuelto'
@@ -97,6 +98,27 @@ var PublicacionesJssm = require('javascript-state-machine').factory({
      * @return {type}           description
      */
     onInformarPagoAutorizado: function (lifeCycle,data) {
+      // primero verifico que no haya sido YA liberado el producto,
+      // conseciencia de otro mensaje de otra servidor. Async!!!
+      if (_.contains(this.history,'productoLiberado')) {
+        // si ya fue liberado no hago nada ni doy error.
+        // La compra ya esta en estado terminal.
+        console.log("El producto ya fue liberado: nose hace nada");
+        return false;
+      }
+
+      // actualiza la forma de entrega del producto
+      this.compra.formaEntrega = _.pick(data,'formaEntrega').formaEntrega;
+
+      this.compra.pagoAutorizado = _.pick(data,'pagoAutorizado').pagoAutorizado;
+      if (this.compra.pagoAutorizado) {
+        return ['confirmarProducto'];
+      } else {
+        return ['liberarProducto'];
+      }
+    },
+    
+    onInformarAutorizacionPago: function (lifeCycle,data) {
       // primero verifico que no haya sido YA liberado el producto,
       // conseciencia de otro mensaje de otra servidor. Async!!!
       if (_.contains(this.history,'productoLiberado')) {
@@ -236,6 +258,7 @@ var PublicacionesJssm = require('javascript-state-machine').factory({
 
     onEntregarProducto: function (lifeCycle,data) {
       // Llegamos al final, nada que hacer, sólo cambiar el estado
+      console.log("++++++++++++ SERV_ENVIOS: el producto de la compra N°"+this.compra.compraId+" fue entregado ++++++++++++");
       return false;
     }
 
