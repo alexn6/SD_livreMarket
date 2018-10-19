@@ -1,9 +1,0 @@
-{
-  "amqp" : {
-    "proveedor" : "rabbit",
-    "url" : "amqp://etracedi:savqK-ekqAQq78tL4UTvHfSeB3cfa4qq@hornet.rmq.cloudamqp.com/etracedi",
-    "url_localhost" : "amqp://localhost",
-    "management" : "http://localhost:15672/",
-    "management_cloudamqp" : "https://customer.cloudamqp.com/instance"
-  }
-}

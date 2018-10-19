@@ -1,13 +1,25 @@
+Casos contemplados
+
 CASO 1 =========> Compra cancelada por infraccion en la compra
-
-archivo: datosCaso1.json
-
 CASO 2 =========> Compra cancelada por pago rechazado
-
-archivo: datosCaso2.json
-
 CASO 3 =========> Compra exitosa por envio por correo
 
-archivo: datosCaso3.json
+Archivo con los datos de la SIMULACION: datosSimulacion.json
 
-NOTA: Los servidores WEB, INFRACCIONES, PUBLICACIONES y PAGO levantan datos de este archivo
+NOTAS: Los servidores WEB, INFRACCIONES, PUBLICACIONES y PAGO levantan datos de este archivo
+
+EJECUCION DE SIMULACION:
+- Se debe ir a la maquina de estado de cada servidor y comentar los datos de la simulacion que se desee correr
+- Los 4 servidores que levantan datos de ese archivos cuentan con las siguientes lineas al principio:
+
+// ********************************************************************************************
+
+// recuperamoslos datos corrspondiente a cada escenario
+//var datosSimulacion = require('./datosSimulacion.json').compraConInfraccion;
+//var datosSimulacion = require('./datosSimulacion.json').compraPagoRechazado;
+var datosSimulacion = require('./datosSimulacion.json').compraExitosaPorCorreo;
+
+// ********************************************************************************************
+
+- Solo se comenta y descomenta la lineas de la simulacion en cuestion
+- Se vuelven a levantar todos los servidores y se envia el mje de inicio al SERV_COMPRAS
