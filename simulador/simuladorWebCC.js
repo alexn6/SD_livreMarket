@@ -1,9 +1,9 @@
 var amqp = require('amqplib/callback_api');
-var amqp_url = require('./properties.json').amqp.url;
+var amqp_url = require('../properties.json').amqp.url;
 
 var _ = require("underscore");
-var WebJssm = require('./webJssmImpl');
-var Steper = require('./Steper');
+var WebJssm = require('../maquinas/webJssmImpl');
+var Steper = require('../Steper');
 
 var steper = new Steper(process.argv[2]);
 
@@ -12,7 +12,7 @@ var steper = new Steper(process.argv[2]);
 var webDB = new Array();
 var web;
 
-var MonitorServer = require('./monitorServer');
+var MonitorServer = require('../monitorServer');
 var monitor = new MonitorServer(steper,webDB);
 
 amqp.connect(amqp_url, function(err, conn) {

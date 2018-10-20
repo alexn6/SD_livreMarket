@@ -1,21 +1,23 @@
 var amqp = require('amqplib/callback_api');
-var amqp_url = require('./properties.json').amqp.url;
+var amqp_url = require('../properties.json').amqp.url;
 
 // recuperamoslos datos corrspondiente a cada escenario
 //var datosSimulacion = require('./datosSimulacion.json').compraConInfraccion;
 //var datosSimulacion = require('./datosSimulacion.json').compraPagoRechazado;
-var datosSimulacion = require('./datosSimulacion.json').compraExitosaPorCorreo;
+var datosSimulacion = require('../datosSimulacion.json').compraExitosaPorCorreo;
 
 var _ = require("underscore");
 var StateMachineHistory = require('javascript-state-machine/lib/history')
 
-var InfraccionesJssm = require('javascript-state-machine').factory({
-  init: 'compraGenerada',
+var PagosJssm = require('javascript-state-machine').factory({
+  init: 'compraConfirmada',
   transitions: [
-    {name:'detectarInfracciones',     from:'compraGenerada',                                  to:'resolviendoInfraccion'},
-    {name:'resolverInfraccion',       from:'resolviendoInfraccion',                           to:'informandoInfraccion'},
-    {name:'informarInfraccion',       from:'informandoInfraccion',                            to:function (data) {return toInfraccionResuelta(data)}}
-    // {name:'reintentarInfraccion',     from:['compraSinInfraccion','compraConInfraccion'],     to:function (data) {return toInfraccionResuelta(data)}}
+    {name:'autorizarPago',                  from:['compraConfirmada', 'autorizandoPago'],                                to:'resolviendoAutorizacionPago'},
+    {name:'resolverAutorizacionPago',       from:'resolviendoAutorizacionPago',                     to:'informandoAutorizacionPago'},
+    // deberia devolver(to) "pagorechazado" o "pagoAutorizado"
+    // para que tome el estado inicial(from) el SRV_CMPRAS 
+    {name:'informarAutorizacionPago',       from:'informandoAutorizacionPago',                      to:'autorizacionPagoInformado'}
+    // {name:'informarAutorizacionPago',       from:'informandoAutorizacionPago',                      to:function (data) {return toAutorizacionResuelta(data)}}
   ],
 
   data: {
@@ -37,33 +39,28 @@ var InfraccionesJssm = require('javascript-state-machine').factory({
       console.log('onTransition history: ',this.history);
     },
 
-    onDetectarInfracciones: function (lifeCycle,data) {
+    onAutorizarPago: function (lifeCycle,data) {
       //console.log('onDetectarInfracciones: data --> ',data);
       this.compra = data;
-      return ['resolverInfraccion'];
+      return ['resolverAutorizacionPago'];
     },
 
-    onResolverInfraccion: function (lifeCycle,data) {
+    onResolverAutorizacionPago: function (lifeCycle,data) {
       //console.log('onResolverInfraccion: data --> ',data);
-      // this.compra.hasInfraccion = Math.random() > 0.7 ? true : false;
-      // this.compra.hasInfraccion = true;
-      // this.compra.hasInfraccion = false;
-      this.compra.hasInfraccion = datosSimulacion.hasInfraccion;
-      return ['informarInfraccion'];
+      // this.compra.pagoAutorizado = Math.random() > 0.7 ? true : false;
+      //this.compra.pagoAutorizado = true;
+      this.compra.pagoAutorizado = datosSimulacion.pagoAutorizado;
+      return ['informarAutorizacionPago'];
     },
 
-    onInformarInfraccion: function (lifeCycle,data) {
+    onInformarAutorizacionPago: function (lifeCycle,data) {
       var msg =  {};
       msg.data = this.compra;
       msg.tarea = lifeCycle.transition;
+      // tmb se deberia publicar el mensaje en el de publicaciones
       publicar('compras',JSON.stringify(msg));
       publicar('publicaciones',JSON.stringify(msg));
       return false;
-    },
-
-    onReintentarInfraccion: function (lifeCycle,data) {
-      // Se solicitó re-informar la infracción con lo cual se re-emite el estado
-      return ['informarInfraccion'];
     }
 
   }
@@ -83,12 +80,12 @@ function publicar(topico,mensaje) {
 };
 
 // helper para determinar transición condicional de infracción
-function toInfraccionResuelta(data) {
-  if (_.pick(data,'hasInfraccion').hasInfraccion) {
-    return 'compraConInfraccion';
+function toAutorizacionResuelta(data) {
+  if (_.pick(data,'pagoAutorizado').pagoAutorizado) {
+    return 'pagoAutorizado';
   } else {
-    return 'compraSinInfraccion';
+    return 'pagoRechazado';
   }
 };
 
-module.exports= InfraccionesJssm;
+module.exports= PagosJssm;

@@ -1,16 +1,16 @@
 var amqp = require('amqplib/callback_api');
-var amqp_url = require('./properties.json').amqp.url;
+var amqp_url = require('../properties.json').amqp.url;
 
 var _ = require('underscore');
-var ComprasJssm = require('./compraJssmImpl');
-var Steper = require('./Steper');
+var ComprasJssm = require('../maquinas/compraJssmImpl');
+var Steper = require('../Steper');
 var steper = new Steper(process.argv[2]);
 
 var comprasDB = new Array();
 var compraSec = 0;
 var compra;
 
-var MonitorServer = require('./monitorServer');
+var MonitorServer = require('../monitorServer');
 var monitor = new MonitorServer(steper,comprasDB);
 
 amqp.connect(amqp_url, function(err, conn) {

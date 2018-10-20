@@ -1,5 +1,5 @@
 var amqp = require('amqplib/callback_api');
-var amqp_url = require('./properties.json').amqp.url;
+var amqp_url = require('../properties.json').amqp.url;
 
 var _ = require("underscore");
 var StateMachineHistory = require('javascript-state-machine/lib/history')
