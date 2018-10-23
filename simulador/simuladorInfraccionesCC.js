@@ -12,6 +12,8 @@ var infraccion;
 var MonitorServer = require('../monitorServer');
 var monitor = new MonitorServer(steper,infraccionesDB);
 
+// var SimuladorInfracciones = function (modo) {
+
 amqp.connect(amqp_url, function(err, conn) {
   conn.createChannel(function(err, ch) {
     var q = 'infracciones';
@@ -43,3 +45,6 @@ amqp.connect(amqp_url, function(err, conn) {
 monitor.server.listen(6001, function () {
   console.log('Servidor MONITOR escuchando en el puerto %j', monitor.server.address());
 });
+
+// }
+// module.exports = SimuladorInfracciones;

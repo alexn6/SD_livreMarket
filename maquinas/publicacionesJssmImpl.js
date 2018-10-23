@@ -2,8 +2,8 @@ var amqp = require('amqplib/callback_api');
 var amqp_url = require('../properties.json').amqp.url;
 
 // recuperamoslos datos corrspondiente a cada escenario
-//var datosSimulacion = require('./datosSimulacion.json').compraConInfraccion;
-//var datosSimulacion = require('./datosSimulacion.json').compraPagoRechazado;
+//var datosSimulacion = require('../datosSimulacion.json').compraConInfraccion;
+//var datosSimulacion = require('../datosSimulacion.json').compraPagoRechazado;
 var datosSimulacion = require('../datosSimulacion.json').compraExitosaPorCorreo;
 
 var _ = require("underscore");
@@ -12,10 +12,11 @@ var StateMachineHistory = require('javascript-state-machine/lib/history')
 var PublicacionesJssm = require('javascript-state-machine').factory({
   init: 'compraGenerada',
   transitions: [
-    {name:'reservarProducto',          from:'compraGenerada',                                  to:'resolviendoStock'},
+    // {name:'reservarProducto',          from:'compraGenerada',                                  to:'resolviendoStock'},
+    {name:'reservarProducto',          from:['compraGenerada','esperandoSincroServidores'],    to:'resolviendoStock'},
     {name:'resolverStock',             from:'resolviendoStock',                                to:'stockResuelto'},
     // mensaje que llega async desde infracciones no garantiza orden de llegada respecto del resto (pago y agenda)
-    {name:'informarInfraccion',        from:'*',                                               to:'infraccionInformada'},
+    {name:'informarInfraccion',        from:'*',                                             to:'infraccionInformada'},
     // mensaje que llega async desde pagos no garantiza orden de llegada respecto del resto (infracción y agenda)
     {name:'informarPagoAutorizado',    from:'*',                                               to:'pagoInformado'},
     {name:'informarAutorizacionPago',    from:'*',                                               to:'pagoInformado'},
@@ -24,7 +25,8 @@ var PublicacionesJssm = require('javascript-state-machine').factory({
     {name:'liberarProducto',           from:['infraccionInformada','stockResuelto'
                                             ,'pagoInformado'],                                 to:'productoLiberado'},
     //confirmar producto es punto de sincronización de los 3 mensajes async (infracciones, pagos, agenda)
-    {name:'confirmarProducto',         from:'*',                                               to:'productoConfirmado'},
+    // {name:'confirmarProducto',         from:'*',                                               to:'productoConfirmado'},
+    {name:'confirmarProducto',         from:'*',                                               to: function (data) {return toTransitionInfraccion(data)}},
     {name:'entregarProducto',          from:'productoConfirmado',                              to:'productoEntregado'}
   ],
 
@@ -284,6 +286,22 @@ function publicar(topico,mensaje) {
       console.log(" [x] Sent %s: '%s'", topico, mensaje);
     });
   });
+};
+
+function toTransitionInfraccion(data) {
+  // if (!_.pick(data,'pagoAutorizado').pagoAutorizado) {
+  //   return 'pagoRechazado';
+  // } else {
+  //   return 'pagoAutorizado';
+  // }
+  if ((_.pick(data,'pagoAutorizado').pagoAutorizado)
+      &&(!_.pick(data,'hasInfraccion').hasInfraccion)
+      &&(_.pick(data,'agendaEnvio').agendaEnvio)) {
+            return 'productoConfirmado';
+          }
+  else{
+    return 'esperandoSincroServidores';
+  }
 };
 
 

@@ -15,6 +15,8 @@ var web;
 var MonitorServer = require('../monitorServer');
 var monitor = new MonitorServer(steper,webDB);
 
+// var SimuladorWeb = function (modo) {
+
 amqp.connect(amqp_url, function(err, conn) {
   conn.createChannel(function(err, ch) {
     var q = 'web';
@@ -52,3 +54,6 @@ amqp.connect(amqp_url, function(err, conn) {
 monitor.server.listen(6002, function () {
   console.log('Servidor MONITOR escuchando en el puerto %j', monitor.server.address());
 });
+
+// }
+// module.exports = SimuladorWeb;

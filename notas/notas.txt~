@@ -15,3 +15,4 @@ Funcionando:
 - Compra cancelada por infraccion (hasInfraccion=true): controlado los mjes de salida y yegada desp de cancelar
 - Compra cancelada por no autorizar el pago (hasInfraccion=false, pagoAutorizado=false): controlado los mjes de salida y yegada desp de cancelar
 - Compra exitosa envio por correo(hasInfraccion=false, pagoAutorizado=true, formaEnvio=correo, costo=nroFijo)
+- Compra exitosa retira(hasInfraccion=false, pagoAutorizado=true, formaEnvio=retira, costo=undefined)

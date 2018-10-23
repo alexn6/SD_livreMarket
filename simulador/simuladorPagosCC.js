@@ -12,6 +12,8 @@ var pago;
 var MonitorServer = require('../monitorServer');
 var monitor = new MonitorServer(steper,PagosDB);
 
+// var SimuladorPagos = function (modo) {
+
 amqp.connect(amqp_url, function(err, conn) {
   conn.createChannel(function(err, ch) {
     // la cola a la que se suscribe el simulador
@@ -44,3 +46,6 @@ amqp.connect(amqp_url, function(err, conn) {
 monitor.server.listen(6004, function () {
   console.log('Servidor MONITOR escuchando en el puerto %j', monitor.server.address());
 });
+
+// }
+// module.exports = SimuladorPagos;

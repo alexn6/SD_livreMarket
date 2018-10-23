@@ -231,9 +231,13 @@ var ComprasJssm = require('javascript-state-machine').factory({
     // },
 
     onInformarAutorizacionPago: function (lifeCycle,data) {
+      console.log('------> info de data recibido:');
+      console.log(data);
       // recupera el dato para comprobar su valor
       this.compra.pagoAutorizado = _.pick(data,'pagoAutorizado').pagoAutorizado;
+      console.log('Pago autorizado = '+this.compra.pagoAutorizado);
       this.compra.formaEntrega = _.pick(data,'formaEntrega').formaEntrega;
+      console.log(data);
       if (this.compra.pagoAutorizado) {
         if(this.compra.formaEntrega == 'correo'){
           return ['agendarEnvio','confirmarCompraFinal'];

@@ -17,6 +17,7 @@ function Steper(modo) {
       if (this.modo == 'normal') {
         steps = jssmObject[transition](data);
       } else {
+        console.log("Se entro en modo step");
         jssmObject.stepsQ.push(transition)
       }
 
@@ -41,6 +42,7 @@ function Steper(modo) {
 
   this.on('manualStep',function (jssmObject) {
     var transition = jssmObject.stepsQ.shift();
+    console.log("Entro en modo MANUAL.");
     if (transition) {
       try {
         steps = jssmObject[transition](jssmObject.compra);

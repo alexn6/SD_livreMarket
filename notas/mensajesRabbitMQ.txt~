@@ -1,2 +1,6 @@
+########################### serv COMPRAS #####################################
 {"tarea":"generarNuevaCompra",
 "data":{"producto":"producto1","cliente":"cliente1"}}
+
+########################### serv PAGOS #####################################
+{"data":{"producto":"producto1","cliente":"cliente1","compraId":0,"formaEntrega":"retira"},"tarea":"detectarInfraccionesCompra"}
