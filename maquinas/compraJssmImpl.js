@@ -231,6 +231,8 @@ var ComprasJssm = require('javascript-state-machine').factory({
     // },
 
     onInformarAutorizacionPago: function (lifeCycle,data) {
+      console.log('------> info de data objeto compras:');
+      console.log(this.compra);
       console.log('------> info de data recibido:');
       console.log(data);
       // recupera el dato para comprobar su valor
@@ -278,6 +280,7 @@ var ComprasJssm = require('javascript-state-machine').factory({
       msg.tarea = lifeCycle.transition;
       publicar('envios',JSON.stringify(msg));
       // return ['finalizarCompra'];
+      return false;
     },
 
     // ###################### hacer finalizarCompra() #######################

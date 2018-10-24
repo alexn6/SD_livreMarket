@@ -40,7 +40,7 @@ var PagosJssm = require('javascript-state-machine').factory({
     },
 
     onAutorizarPago: function (lifeCycle,data) {
-      console.log('onAutorizarPago: data --> ');
+      console.log(' ************** onAutorizarPago: data --> ');
       console.log(data);
       this.compra = data;
       return ['resolverAutorizacionPago'];
@@ -55,8 +55,12 @@ var PagosJssm = require('javascript-state-machine').factory({
     },
 
     onInformarAutorizacionPago: function (lifeCycle,data) {
+      // console.log("=== onInformarAutorizacionpago => Data recibida: ");
+      // console.log(data);
       var msg =  {};
       msg.data = this.compra;
+      // console.log("=== onInformarAutorizacionpago => Data enviada: ");
+      // console.log(msg.data);
       msg.tarea = lifeCycle.transition;
       // tmb se deberia publicar el mensaje en el de publicaciones
       publicar('compras',JSON.stringify(msg));
