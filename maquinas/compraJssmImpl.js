@@ -17,14 +17,17 @@ var ComprasJssm = require('javascript-state-machine').factory({
                                             'reservandoProducto','compraSinInfraccion',
                                             'compraConInfraccion', 'cancelandoCompra'],       to:'entregaSeleccionada'},
     {name:'informarInfraccion',       from:'*',                                               to: function (data) {return toTransitionInfraccion(data)}},
-    {name:'calcularCosto',            from:'entregaSeleccionada',                             to:'calculandoCosto'},
+    // no importa si hay infraacion o no se calcula el costo(ver si corregir)
+    {name:'calcularCosto',            from:['entregaSeleccionada','compraSinInfraccion',
+                                            'compraConInfraccion'],                             to:'calculandoCosto'},
     {name:'informarCostoCalculado',   from:['calculandoCosto','entregaSeleccionada',
                                             'compraConfirmada', 'cancelandoCompra', 
                                             'compraSinInfraccion'],                              to:'costoCalculado'},
     {name:'seleccionarPago',          from:['entregaSeleccionada','costoCalculado'],          to:'seleccionandoPago'},
     {name:'informarPagoSeleccionado', from:['seleccionandoPago', 'compraSinInfraccion'],                               to:'pagoSeleccionado'},
     {name:'confirmarCompra',          from:'*',                                               to:'compraConfirmada'},
-    {name:'cancelarCompra',           from:['compraConInfraccion','pagoRechazado'],           to:'cancelandoCompra'},
+    {name:'cancelarCompra',           from:['compraConInfraccion','pagoRechazado',
+                                            'calculandoCosto'],           to:'cancelandoCompra'},
     // {name:'informarCompraCancelada',  from:'cancelandoCompra',                                to:'compraCancelada'},
     {name:'autorizarPago',            from:'compraConfirmada',                                to:'autorizandoPago'},
     {name:'informarAutorizacionPago', from:'autorizandoPago',                                 to: function (data) {return toTransitionPago(data)}},
@@ -38,7 +41,10 @@ var ComprasJssm = require('javascript-state-machine').factory({
 
   data: {
     compra: new Object(),
-    stepsQ: new Array()
+    stepsQ: new Array(),
+    // ************ parche del step ************
+    dataStepQ: new Array()
+    // *****************************************
   },
 
   plugins: [
@@ -231,10 +237,6 @@ var ComprasJssm = require('javascript-state-machine').factory({
     // },
 
     onInformarAutorizacionPago: function (lifeCycle,data) {
-      console.log('------> info de data objeto compras:');
-      console.log(this.compra);
-      console.log('------> info de data recibido:');
-      console.log(data);
       // recupera el dato para comprobar su valor
       this.compra.pagoAutorizado = _.pick(data,'pagoAutorizado').pagoAutorizado;
       console.log('Pago autorizado = '+this.compra.pagoAutorizado);

@@ -3,8 +3,8 @@ var amqp_url = require('../properties.json').amqp.url;
 
 // recuperamoslos datos corrspondiente a cada escenario
 //var datosSimulacion = require('../datosSimulacion.json').compraConInfraccion;
-//var datosSimulacion = require('../datosSimulacion.json').compraPagoRechazado;
-var datosSimulacion = require('../datosSimulacion.json').compraExitosaPorCorreo;
+var datosSimulacion = require('../datosSimulacion.json').compraPagoRechazado;
+//var datosSimulacion = require('../datosSimulacion.json').compraExitosaPorCorreo;
 
 var _ = require("underscore");
 var StateMachineHistory = require('javascript-state-machine/lib/history')
@@ -13,7 +13,8 @@ var PublicacionesJssm = require('javascript-state-machine').factory({
   init: 'compraGenerada',
   transitions: [
     // {name:'reservarProducto',          from:'compraGenerada',                                  to:'resolviendoStock'},
-    {name:'reservarProducto',          from:['compraGenerada','esperandoSincroServidores'],    to:'resolviendoStock'},
+    {name:'reservarProducto',          from:['compraGenerada','esperandoSincroServidores',
+                                              'productoLiberado'],                               to:'resolviendoStock'},
     {name:'resolverStock',             from:'resolviendoStock',                                to:'stockResuelto'},
     // mensaje que llega async desde infracciones no garantiza orden de llegada respecto del resto (pago y agenda)
     {name:'informarInfraccion',        from:'*',                                             to:'infraccionInformada'},
@@ -48,6 +49,16 @@ var PublicacionesJssm = require('javascript-state-machine').factory({
       // console.log('onTransition data: ',data);
       console.log('onTransition history: ',this.history);
     },
+
+    onBeforeReservarProducto: function (lifeCycle,data){
+      console.log('onBeforeTransition reservar Producto ==> data ');
+      console.log(data);
+      // se cancela la transicion
+      if(_.pick(data,'hasInfraccion').hasInfraccion){
+        console.log("Se cancela la transicion <reservarProducto> xq la compra tiene una ingraccion");
+        return false;
+      }
+   },
 
 
     /**
@@ -163,7 +174,7 @@ var PublicacionesJssm = require('javascript-state-machine').factory({
       if (_.contains(this.history,'productoLiberado')) {
         // si ya fue liberado no hago nada ni doy error.
         // La compra ya esta en estado terminal.
-        console.log("El producto ya fue liberado: nose hace nada");
+        console.log("===> onInformatAgendaEnvio(): El producto ya fue liberado: nose hace nada");
         return false;
       }
 
@@ -189,7 +200,7 @@ var PublicacionesJssm = require('javascript-state-machine').factory({
       if (_.contains(this.history,'productoLiberado')) {
         // si ya fue liberado no hago nada ni doy error.
         // La compra ya esta en estado terminal.
-        console.log("ERROR!!! ---> El producto fue liberado");
+        console.log("RESERVA IMPOSIBLE!!! ---> El producto ya fue liberado");
         return false;
       }
 

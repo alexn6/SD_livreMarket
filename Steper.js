@@ -8,6 +8,7 @@ function Steper(modo) {
 
   this.modo = modo || 'normal';
   this.stepsQ = [];
+  this.dataStepQ = [];
 
   console.log('Steper arranca en modo --> ',this.modo);
 
@@ -17,8 +18,9 @@ function Steper(modo) {
       if (this.modo == 'normal') {
         steps = jssmObject[transition](data);
       } else {
-        console.log("Se entro en modo step");
-        jssmObject.stepsQ.push(transition)
+        console.log("=== Se entro en modo STEP: se guardan la transicion y los datos recibidos ===");
+        jssmObject.stepsQ.push(transition);
+        jssmObject.dataStepQ[transition] = data;
       }
 
       console.log('steps --> ',steps);
@@ -42,10 +44,13 @@ function Steper(modo) {
 
   this.on('manualStep',function (jssmObject) {
     var transition = jssmObject.stepsQ.shift();
-    console.log("Entro en modo MANUAL.");
+    // console.log("Entro en modo MANUAL.");
     if (transition) {
+      //console.log("Se entro en la transicion<"+transition+"> con los datos: "+jssmObject.compra);
+      //console.log(jssmObject.compra);
       try {
-        steps = jssmObject[transition](jssmObject.compra);
+        //steps = jssmObject[transition](jssmObject.compra);
+        steps = jssmObject[transition](jssmObject.dataStepQ[transition]);
         if (steps) {
           // se requiere ejecutar la lista de transiciones luego de este paso
           for (const step of steps) {
