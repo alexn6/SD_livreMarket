@@ -9,8 +9,12 @@ var steper = new Steper(process.argv[2]);
 var enviosDB = new Array();
 var envio;
 
-var MonitorServer = require('../monitorServer');
-var monitor = new MonitorServer(steper,enviosDB);
+// var MonitorServer = require('../monitorServer');
+// var monitor = new MonitorServer(steper,enviosDB);
+// var MonitorServerWeb = require('../monitorServerWeb');
+// var monitor = new MonitorServerWeb(steper,enviosDB);
+var MonitorServerSocketJson = require('../monitorServerSocketJson');
+var monitor = new MonitorServerSocketJson(steper,enviosDB);
 
 // var SimuladorEnvios = function (modo) {
 
@@ -22,14 +26,16 @@ amqp.connect(amqp_url, function(err, conn) {
     console.log(" [*] Esperando mensajes en %s. Para salir presione CTRL+C", q);
     ch.consume(q, function(msg) {
       var evento = JSON.parse(msg.content.toString());
-      console.log('se recibió el mensaje: ',evento);
+      //console.log('se recibió el mensaje: ',evento);
+      console.log('==> [ENVIOS]: se recibe la tarea  *** ',evento.tarea,' ***');
 
       envio = _.find(enviosDB,function (compra) {
         return compra.compra.compraId == evento.data.compraId;
       });
 
       if (!envio) {
-        console.log('simuladorEnviosCC: ingresa un nuevo envio');
+        // console.log('simuladorEnviosCC: ingresa un nuevo envio');
+        console.log('[o] [ENVIOS]: se crea un nuevo envio con data: ',evento.data);
         envio = new EnviosJssm();
         envio.compra = evento.data;
         enviosDB.push(envio);
@@ -42,9 +48,12 @@ amqp.connect(amqp_url, function(err, conn) {
   });
 });
 
-monitor.server.listen(6005, function () {
-  console.log('Servidor MONITOR escuchando en el puerto %j', monitor.server.address());
-});
+// monitor.server.listen(6005, function () {
+//   console.log('Servidor MONITOR escuchando en el puerto %j', monitor.server.address());
+// });
+monitor.serverIO.listen(6005, function () {
+  console.log('Servidor MONITOR-IO de compras escuchando en localhost:6005..')
+})
 
 // }
 // module.exports = SimuladorEnvios;

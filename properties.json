@@ -5,5 +5,13 @@
     "url_localhost" : "amqp://localhost",
     "management" : "http://localhost:15672/",
     "management_cloudamqp" : "https://customer.cloudamqp.com/instance"
+  },
+  "ports" : {
+    "compras": 6000,
+    "web": 6002,
+    "infracciones": 6001,
+    "pagos": 6004,
+    "envios": 6005,
+    "publicaciones": 6003
   }
 }

@@ -21,3 +21,7 @@ Funcionando:
 ver onInformarAutorizacionPago en ===> maquina de PAGOS
 **** envia datos vacios
 
+################### 09/11 ####################
+* tratar de pasar el canal de comunicacion al nuevo steper para comunicarse con el distrMon y enviar los pasos realizados
+** cuando ejecucion TRANSICION en STEP hacer un getMjesEnviados del objeto JSSM para ver los mjes enviados
+** corregir las transiciones pendientes del PASO a PASO

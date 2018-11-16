@@ -15,8 +15,12 @@ var EnviosJssm = require('javascript-state-machine').factory({
   ],
 
   data: {
+    nombreSimulador: 'ENVIOS',
     compra: new Object(),
-    stepsQ: new Array()
+    stepsQ: new Array(),
+    // ************ parche del step ************
+    dataStepQ: new Array()
+    // *****************************************
   },
 
   plugins: [
@@ -30,7 +34,7 @@ var EnviosJssm = require('javascript-state-machine').factory({
       // console.log('onTransition from: ',lifeCycle.from);
       // console.log('onTransition to: ',lifeCycle.to);
       // console.log('onTransition data: ',data);
-      console.log('onTransition history: ',this.history);
+      //console.log('onTransition history: ',this.history);
     },
 
     onCalcularCosto: function (lifeCycle,data) {
@@ -80,7 +84,8 @@ function publicar(topico,mensaje) {
       var ex = 'livre_market';
       ch.assertExchange(ex, 'topic', {durable: true});
       ch.publish(ex,topico, new Buffer(mensaje));
-      console.log(" [x] Sent %s: '%s'", topico, mensaje);
+      //console.log(" [x] Sent %s: '%s'", topico, mensaje);
+      console.log("[<][ENVIOS] ==> ["+topico+"] : envia %s", mensaje);
     });
   });
 };

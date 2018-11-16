@@ -4,27 +4,32 @@ var _ = require('underscore');
 
 var compras = new net.Socket();
 compras.connect(6000,'127.0.0.1', function () {
-  console.log('conectado al monitor de COMPRAS en el puerto 6000\n');
+  console.log('\nConectado al monitor de COMPRAS en el puerto 6000\n');
 });
 
 var Infracciones = new net.Socket();
 Infracciones.connect(6001,'127.0.0.1', function () {
-  console.log('conectado al monitor de Infracciones en el puerto 6001\n');
+  console.log('Conectado al monitor de Infracciones en el puerto 6001\n');
 });
 
 var Publicaciones = new net.Socket();
 Publicaciones.connect(6003,'127.0.0.1', function () {
-  console.log('conectado al monitor de Publicaciones en el puerto 6003\n');
+  console.log('Conectado al monitor de Publicaciones en el puerto 6003\n');
 });
 
 var web = new net.Socket();
 web.connect(6002,'127.0.0.1', function () {
-  console.log('conectado al monitor de WEB en el puerto 6002\n');
+  console.log('Conectado al monitor de WEB en el puerto 6002\n');
 });
 
 var pagos = new net.Socket();
 pagos.connect(6004,'127.0.0.1', function () {
-  console.log('conectado al monitor de PAGOS en el puerto 6004\n');
+  console.log('Conectado al monitor de PAGOS en el puerto 6004\n');
+});
+
+var Envios = new net.Socket();
+  Envios.connect(6005,'127.0.0.1', function () {
+  console.log('Conectado al monitor de ENVIOS en el puerto 6005\n');
 });
 
 server.listen(5000, function () {
@@ -55,15 +60,18 @@ server.on('connection', function (sock) {
       case 'Infracciones':
         cliente = Infracciones;
         break;
-        case 'pagos':
+      case 'pagos':
         cliente = pagos;
+        break;
+      case 'Envios':
+        cliente = Envios;
         break;
 
       case 'status':
-        for (cli of [compras,Publicaciones,web,Infracciones, pagos]) {
+        for (cli of [compras,Publicaciones,web,Infracciones, pagos, Envios]) {
           cli.write('getAllCompras');
         }
-        break;
+      break;
 
       default:
         sock.write('Servidor o comando' + commandLine[0] + ' desconocido\n');
@@ -126,6 +134,15 @@ server.on('connection', function (sock) {
   pagos.on('close',function () {
     console.log('conexión con pagos perdida...');
     sock.write('conexión con pagos perdida...');
+  });
+
+  Envios.on('data',function (data) {
+    sock.write('ENVIOS: ' + data + '\n');
+  });
+
+  Envios.on('close',function () {
+    console.log('conexión con Envios perdida...');
+    sock.write('conexión con Envios perdida...');
   });
 
 });

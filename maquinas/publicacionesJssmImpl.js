@@ -32,8 +32,12 @@ var PublicacionesJssm = require('javascript-state-machine').factory({
   ],
 
   data: {
+    nombreSimulador: 'PUBLICACIONES',
     compra: new Object(),
-    stepsQ: new Array()
+    stepsQ: new Array(),
+    // ************ parche del step ************
+    dataStepQ: new Array()
+    // *****************************************
   },
 
   plugins: [
@@ -47,12 +51,12 @@ var PublicacionesJssm = require('javascript-state-machine').factory({
       // console.log('onTransition from: ',lifeCycle.from);
       // console.log('onTransition to: ',lifeCycle.to);
       // console.log('onTransition data: ',data);
-      console.log('onTransition history: ',this.history);
+      //console.log('onTransition history: ',this.history);
     },
 
     onBeforeReservarProducto: function (lifeCycle,data){
-      console.log('onBeforeTransition reservar Producto ==> data ');
-      console.log(data);
+      // console.log('onBeforeTransition reservar Producto ==> data ');
+      // console.log(data);
       // se cancela la transicion
       if(_.pick(data,'hasInfraccion').hasInfraccion){
         console.log("Se cancela la transicion <reservarProducto> xq la compra tiene una ingraccion");
@@ -294,7 +298,8 @@ function publicar(topico,mensaje) {
       var ex = 'livre_market';
       ch.assertExchange(ex, 'topic', {durable: true});
       ch.publish(ex,topico, new Buffer(mensaje));
-      console.log(" [x] Sent %s: '%s'", topico, mensaje);
+      //console.log(" [x] Sent %s: '%s'", topico, mensaje);
+      console.log("[<][PUBLICACIONES] ==> ["+topico+"] : envia %s", mensaje);
     });
   });
 };

@@ -12,8 +12,12 @@ var steper = new Steper(process.argv[2]);
 var webDB = new Array();
 var web;
 
-var MonitorServer = require('../monitorServer');
-var monitor = new MonitorServer(steper,webDB);
+// var MonitorServer = require('../monitorServer');
+// var monitor = new MonitorServer(steper,webDB);
+// var MonitorServerWeb = require('../monitorServerWeb');
+// var monitor = new MonitorServerWeb(steper,webDB);
+var MonitorServerSocketJson = require('../monitorServerSocketJson');
+var monitor = new MonitorServerSocketJson(steper,webDB);
 
 // var SimuladorWeb = function (modo) {
 
@@ -25,7 +29,8 @@ amqp.connect(amqp_url, function(err, conn) {
     console.log(" [*] Esperando mensajes en %s. Para salir presione CTRL+C", q);
     ch.consume(q, function(msg) {
       var evento = JSON.parse(msg.content.toString());
-      console.log('se recibió el mensaje: ',evento);
+      //console.log('se recibió el mensaje: ',evento);
+      console.log('==> [WEB]: se recibe la tarea  *** ',evento.tarea,' ***');
 
       web = _.find(webDB,function (compra) {
         return compra.compra.compraId == evento.data.compraId;
@@ -35,8 +40,9 @@ amqp.connect(amqp_url, function(err, conn) {
 
       if (!web) {
         //console.log('simuladorPublicacionesCC: ingresa a nueva publicacion');
+        console.log('[o] [WEB]: se crea un nuevo web con data: ',evento.data);
         web = new WebJssm();
-        web.compra = evento.data
+        web.compra = evento.data;
         webDB.push(web);
       }
 
@@ -51,9 +57,13 @@ amqp.connect(amqp_url, function(err, conn) {
   });
 });
 
-monitor.server.listen(6002, function () {
-  console.log('Servidor MONITOR escuchando en el puerto %j', monitor.server.address());
-});
+// monitor.server.listen(6002, function () {
+//   console.log('Servidor MONITOR escuchando en el puerto %j', monitor.server.address());
+// });
+
+monitor.serverIO.listen(6002, function () {
+  console.log('Servidor MONITOR-IO de compras escuchando en localhost:6002..')
+})
 
 // }
 // module.exports = SimuladorWeb;

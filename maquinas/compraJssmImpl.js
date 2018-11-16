@@ -40,10 +40,14 @@ var ComprasJssm = require('javascript-state-machine').factory({
   ],
 
   data: {
+    nombreSimulador: 'COMPRAS',
     compra: new Object(),
     stepsQ: new Array(),
     // ************ parche del step ************
-    dataStepQ: new Array()
+    dataStepQ: new Array(),
+    // *****************************************
+    // ************ parche del stepSocket ************
+    mjesEnviados: new Array()
     // *****************************************
   },
 
@@ -58,7 +62,7 @@ var ComprasJssm = require('javascript-state-machine').factory({
       // console.log('onTransition from: ',lifeCycle.from);
       // console.log('onTransition to: ',lifeCycle.to);
       // console.log('onTransition data: ',data);
-      console.log('onTransition history: ',this.history);
+      //console.log('onTransition history: ',this.history);
     },
 
     // onBeforeTransition: function (lifeCycle,data){
@@ -117,7 +121,9 @@ var ComprasJssm = require('javascript-state-machine').factory({
       var msg =  {};
       msg.data = this.compra;
       msg.tarea = lifeCycle.transition;
-      publicar('web',JSON.stringify(msg));
+      // publicar('web',JSON.stringify(msg));
+      // publicar('web',JSON.stringify(msg), this.mjesEnviados);
+      publicar('web', msg, this.mjesEnviados);
       return false;
     },
 
@@ -125,7 +131,9 @@ var ComprasJssm = require('javascript-state-machine').factory({
       var msg =  {};
       msg.data = this.compra;
       msg.tarea = lifeCycle.transition;
-      publicar('infracciones',JSON.stringify(msg));
+      //publicar('infracciones',JSON.stringify(msg));
+      // publicar('infracciones',JSON.stringify(msg), this.mjesEnviados);
+      publicar('infracciones', msg, this.mjesEnviados);
       return false;
     },
 
@@ -133,7 +141,9 @@ var ComprasJssm = require('javascript-state-machine').factory({
       var msg =  {};
       msg.data = this.compra;
       msg.tarea = lifeCycle.transition;
-      publicar('publicaciones',JSON.stringify(msg));
+      // publicar('publicaciones',JSON.stringify(msg));
+      // publicar('publicaciones',JSON.stringify(msg), this.mjesEnviados);
+      publicar('publicaciones', msg, this.mjesEnviados);
       return false;
     },
 
@@ -150,7 +160,9 @@ var ComprasJssm = require('javascript-state-machine').factory({
       var msg =  {};
       msg.data = this.compra;
       msg.tarea = lifeCycle.transition;
-      publicar('envios',JSON.stringify(msg));
+      // publicar('envios',JSON.stringify(msg));
+      // publicar('envios',JSON.stringify(msg), this.mjesEnviados);
+      publicar('envios', msg, this.mjesEnviados);
       return false;
     },
 
@@ -164,7 +176,9 @@ var ComprasJssm = require('javascript-state-machine').factory({
       msg.data = this.compra;
       msg.tarea = lifeCycle.transition;
       // if(!(_.contains(this.history,'compraConInfraccion'))){
-        publicar('web',JSON.stringify(msg));
+        //publicar('web',JSON.stringify(msg));
+        // publicar('web',JSON.stringify(msg), this.mjesEnviados);
+        publicar('web', msg, this.mjesEnviados);
       // }
       return false;
     },
@@ -209,7 +223,9 @@ var ComprasJssm = require('javascript-state-machine').factory({
       var msg =  {};
       msg.data = this.compra;
       msg.tarea = lifeCycle.transition;
-      publicar('web',JSON.stringify(msg));
+      // publicar('web',JSON.stringify(msg));
+      // publicar('web',JSON.stringify(msg), this.mjesEnviados);
+      publicar('web', msg, this.mjesEnviados);
       return false;
     },
 
@@ -217,7 +233,9 @@ var ComprasJssm = require('javascript-state-machine').factory({
       var msg =  {};
       msg.data = this.compra;
       msg.tarea = lifeCycle.transition;
-      publicar('pagos',JSON.stringify(msg));
+      // publicar('pagos',JSON.stringify(msg));
+      //publicar('pagos',JSON.stringify(msg), this.mjesEnviados);
+      publicar('pagos', msg, this.mjesEnviados);
       return false;
     },
 
@@ -239,9 +257,9 @@ var ComprasJssm = require('javascript-state-machine').factory({
     onInformarAutorizacionPago: function (lifeCycle,data) {
       // recupera el dato para comprobar su valor
       this.compra.pagoAutorizado = _.pick(data,'pagoAutorizado').pagoAutorizado;
-      console.log('Pago autorizado = '+this.compra.pagoAutorizado);
+      //console.log('Pago autorizado = '+this.compra.pagoAutorizado);
       this.compra.formaEntrega = _.pick(data,'formaEntrega').formaEntrega;
-      console.log(data);
+      //console.log(data);
       if (this.compra.pagoAutorizado) {
         if(this.compra.formaEntrega == 'correo'){
           return ['agendarEnvio','confirmarCompraFinal'];
@@ -261,7 +279,9 @@ var ComprasJssm = require('javascript-state-machine').factory({
       msg.data = this.compra;
       // msg.tarea = lifeCycle.transition;
       msg.tarea = 'informarCompraRegistrada';
-      publicar('web',JSON.stringify(msg));
+      // publicar('web',JSON.stringify(msg));
+      // publicar('web',JSON.stringify(msg), this.mjesEnviados);
+      publicar('web', msg, this.mjesEnviados);
       return ['finalizarCompra'];
     },
 
@@ -280,7 +300,9 @@ var ComprasJssm = require('javascript-state-machine').factory({
       var msg =  {};
       msg.data = this.compra;
       msg.tarea = lifeCycle.transition;
-      publicar('envios',JSON.stringify(msg));
+      // publicar('envios',JSON.stringify(msg));
+      // publicar('envios',JSON.stringify(msg), this.mjesEnviados);
+      publicar('envios', msg, this.mjesEnviados);
       // return ['finalizarCompra'];
       return false;
     },
@@ -291,27 +313,47 @@ var ComprasJssm = require('javascript-state-machine').factory({
       return false;
     }
 
-    // ###################### AGREGADO #######################
-    // onInformarCompraCancelada: function (lifeCycle,data) {
-    //   var msg =  {};
-    //   msg.data = this.compra;
-    //   msg.tarea = lifeCycle.transition;
-    //   publicar('web',JSON.stringify(msg));
-    //   return false;
-    // },
-    // #######################################################
   }
 
 });
 
 // helper para publicar un mensaje en el exchange de rabbitmq
-function publicar(topico,mensaje) {
+// function publicar(topico,mensaje) {
+//   amqp.connect(amqp_url, function(err, conn) {
+//     conn.createChannel(function(err, ch) {
+//       var ex = 'livre_market';
+//       ch.assertExchange(ex, 'topic', {durable: true});
+//       ch.publish(ex,topico, new Buffer(mensaje));
+//       console.log("[<][COMPRAS] ==> ["+topico+"] : envia %s", mensaje);
+//     });
+//   });
+// };
+
+// helper para publicar un mensaje en el exchange de rabbitmq
+function publicar(topico, mensaje, mjesEnviados) {
   amqp.connect(amqp_url, function(err, conn) {
     conn.createChannel(function(err, ch) {
       var ex = 'livre_market';
       ch.assertExchange(ex, 'topic', {durable: true});
-      ch.publish(ex,topico, new Buffer(mensaje));
-      console.log(" [x] Sent %s: '%s'", topico, mensaje);
+      var msgString = JSON.stringify(mensaje);
+      // ch.publish(ex,topico, new Buffer(mensaje));
+      ch.publish(ex,topico, new Buffer(msgString));
+      console.log("[<][COMPRAS] ==> ["+topico+"] : envia %s", mensaje);
+      console.log(mensaje);
+      // *****************************************************************
+      // parche para amacenar los mjes enviados
+      var dataMjeEnviado = {
+        tarea: null,
+        datos: null,
+        destino: null
+      }
+
+      dataMjeEnviado.tarea = mensaje.tarea;
+      dataMjeEnviado.datos = mensaje.data;
+      dataMjeEnviado.destino = topico;
+      //mjesEnviados.push("[<] [MENSAJE] ==> ["+topico+"] - | - dataMje: "+ mensaje);
+      mjesEnviados.push(dataMjeEnviado);
+      // *****************************************************************
     });
   });
 };

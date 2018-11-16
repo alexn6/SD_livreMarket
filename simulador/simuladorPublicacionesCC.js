@@ -9,8 +9,12 @@ var steper = new Steper(process.argv[2]);
 var PublicacionesDB = new Array();
 var publicacion;
 
-var MonitorServer = require('../monitorServer');
-var monitor = new MonitorServer(steper,PublicacionesDB);
+// var MonitorServer = require('../monitorServer');
+// var monitor = new MonitorServer(steper,PublicacionesDB);
+// var MonitorServerWeb = require('../monitorServerWeb');
+// var monitor = new MonitorServerWeb(steper,PublicacionesDB);
+var MonitorServerSocketJson = require('../monitorServerSocketJson');
+var monitor = new MonitorServerSocketJson(steper,PublicacionesDB);
 
 // var SimuladorPublicaciones = function (modo) {
 
@@ -22,7 +26,8 @@ amqp.connect(amqp_url, function(err, conn) {
     console.log(" [*] Esperando mensajes en %s. Para salir presione CTRL+C", q);
     ch.consume(q, function(msg) {
       var evento = JSON.parse(msg.content.toString());
-      console.log('se recibió el mensaje: ',evento);
+      // console.log('se recibió el mensaje: ',evento);
+      console.log('==> [PUBLICACIONES]: se recibe la tarea  *** ',evento.tarea,' ***');
 
       publicacion = _.find(PublicacionesDB,function (compra) {
         return compra.compra.compraId == evento.data.compraId;
@@ -42,9 +47,13 @@ amqp.connect(amqp_url, function(err, conn) {
   });
 });
 
-monitor.server.listen(6003, function () {
-  console.log('Servidor MONITOR escuchando en el puerto %j', monitor.server.address());
-});
+// monitor.server.listen(6003, function () {
+//   console.log('Servidor MONITOR escuchando en el puerto %j', monitor.server.address());
+// });
+
+monitor.serverIO.listen(6003, function () {
+  console.log('Servidor MONITOR-IO de publicaciones escuchando en localhost:6003..')
+})
 
 // }
 // module.exports = SimuladorPublicaciones;
