@@ -2,19 +2,19 @@ var amqp = require('amqplib/callback_api');
 var amqp_url = require('../properties.json').amqp.url;
 var _ = require("underscore");
 var EnviosJssm = require('../maquinas/enviosJssmImpl');
-var Steper = require('../Steper');
-
-var steper = new Steper(process.argv[2]);
+// var Steper = require('../Steper');
+// var steper = new Steper(process.argv[2]);
+var SteperSocketJson = require('../SteperSocketJson');
+var steperSocketJson = new SteperSocketJson(process.argv[2]);
 
 var enviosDB = new Array();
 var envio;
 
 // var MonitorServer = require('../monitorServer');
 // var monitor = new MonitorServer(steper,enviosDB);
-// var MonitorServerWeb = require('../monitorServerWeb');
-// var monitor = new MonitorServerWeb(steper,enviosDB);
 var MonitorServerSocketJson = require('../monitorServerSocketJson');
-var monitor = new MonitorServerSocketJson(steper,enviosDB);
+// var monitor = new MonitorServerSocketJson(steper,enviosDB);
+var monitor = new MonitorServerSocketJson(steperSocketJson,enviosDB);
 
 // var SimuladorEnvios = function (modo) {
 
@@ -41,7 +41,8 @@ amqp.connect(amqp_url, function(err, conn) {
         enviosDB.push(envio);
       }
 
-      steper.emit('step',envio,evento.tarea,evento.data);
+      // steper.emit('step',envio,evento.tarea,evento.data);
+      steperSocketJson.emit('step',envio,evento.tarea,evento.data);
       ch.ack(msg);
 
     }, {noAck: false});

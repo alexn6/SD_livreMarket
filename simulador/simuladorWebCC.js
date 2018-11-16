@@ -3,21 +3,19 @@ var amqp_url = require('../properties.json').amqp.url;
 
 var _ = require("underscore");
 var WebJssm = require('../maquinas/webJssmImpl');
-var Steper = require('../Steper');
-
-var steper = new Steper(process.argv[2]);
-
-//./csimul la Implllegada de un nuevo mensaje encolado de compra
+// var Steper = require('../Steper');
+// var steper = new Steper(process.argv[2]);
+var SteperSocketJson = require('../SteperSocketJson');
+var steperSocketJson = new SteperSocketJson(process.argv[2]);
 
 var webDB = new Array();
 var web;
 
 // var MonitorServer = require('../monitorServer');
 // var monitor = new MonitorServer(steper,webDB);
-// var MonitorServerWeb = require('../monitorServerWeb');
-// var monitor = new MonitorServerWeb(steper,webDB);
 var MonitorServerSocketJson = require('../monitorServerSocketJson');
-var monitor = new MonitorServerSocketJson(steper,webDB);
+// var monitor = new MonitorServerSocketJson(steper,webDB);
+var monitor = new MonitorServerSocketJson(steperSocketJson,webDB);
 
 // var SimuladorWeb = function (modo) {
 
@@ -50,7 +48,8 @@ amqp.connect(amqp_url, function(err, conn) {
       // console.log('simuladorPublicacionesCC 3 --> ',evento.data);
       // console.log('simuladorPublicacionesCC 4 --> ',publicacion);
 
-      steper.emit('step',web,evento.tarea,evento.data);
+      // steper.emit('step',web,evento.tarea,evento.data);
+      steperSocketJson.emit('step',web,evento.tarea,evento.data);
       ch.ack(msg);
 
     }, {noAck: false});

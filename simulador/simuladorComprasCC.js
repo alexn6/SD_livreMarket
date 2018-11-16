@@ -31,6 +31,7 @@ amqp.connect(amqp_url, function(err, conn) {
       // console.log('se recibió el mensaje: ',evento);
       console.log('==> [COMPRAS]: se recibe la tarea  *** ',evento.tarea,' ***');
       // ################################################################
+      // ########################### MODO STEP ##########################
       var dataIngreso = {
         id: evento.data.compraId,
         accion: 'INGRESA',
@@ -57,22 +58,22 @@ amqp.connect(amqp_url, function(err, conn) {
         comprasDB.push(compra);
 
         // ################################################################
-        // se envia la misma info al SERVER PUG
-        // var dataCreacion = {
-        //   id: compra.compra.compraId,
-        //   accion: 'CREACION',
-        //   tarea: null,
-        // }
-        // dataCreacion.tarea = 'se creó la compra n°'+compra.compra.compraId;
-
-        // monitor.ioServerMonitor.sockets.emit('detalle-mje-getAllCompras', dataCreacion);
-        // ################################################################
+        // ########################### MODO STEP ##########################
         // actualizamos la cant de cmpras
-        monitor.ioServerMonitor.sockets.emit('update-cant-compras', comprasDB.length);
+        if(steperSocketJson.modo == 'step'){
+          monitor.ioServerMonitor.sockets.emit('update-cant-compras', comprasDB.length);
+        }
+        // ################################################################
+
         //console.log('DB Compras: ',comprasDB);
       }
 
-      monitor.ioServerMonitor.sockets.emit('detalle-mje-getAllCompras', dataIngreso);
+      // ################################################################
+      // ########################### MODO STEP ##########################
+      if(steperSocketJson.modo == 'step'){
+        monitor.ioServerMonitor.sockets.emit('detalle-mje-getAllCompras', dataIngreso);
+      }
+      // ################################################################
 
       // mando a ejecutar o guardar la tarea
       // steper.emit('step',compra,evento.tarea,evento.data);
@@ -87,7 +88,13 @@ amqp.connect(amqp_url, function(err, conn) {
       // ################################################################
       // actualizamos las tareas
       var tareas_pend = compra.stepsQ;
-      monitor.ioServerMonitor.sockets.emit('update-tareas-pend', tareas_pend);
+
+      // ################################################################
+      // ########################### MODO STEP ##########################
+      if(steperSocketJson.modo == 'step'){
+        monitor.ioServerMonitor.sockets.emit('update-tareas-pend', tareas_pend);
+      }
+      // ################################################################
 
     }, {noAck: false});
   });

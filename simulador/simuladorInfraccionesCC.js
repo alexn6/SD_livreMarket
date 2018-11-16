@@ -2,19 +2,19 @@ var amqp = require('amqplib/callback_api');
 var amqp_url = require('../properties.json').amqp.url;
 var _ = require("underscore");
 var InfraccionesJssm = require('../maquinas/infraccionJssmImpl');
-var Steper = require('../Steper');
-
-var steper = new Steper(process.argv[2]);
+// var Steper = require('../Steper');
+// var steper = new Steper(process.argv[2]);
+var SteperSocketJson = require('../SteperSocketJson');
+var steperSocketJson = new SteperSocketJson(process.argv[2]);
 
 var infraccionesDB = new Array();
 var infraccion;
 
 // var MonitorServer = require('../monitorServer');
 // var monitor = new MonitorServer(steper,infraccionesDB);
-// var MonitorServerWeb = require('../monitorServerWeb');
-// var monitor = new MonitorServerWeb(steper,infraccionesDB);
 var MonitorServerSocketJson = require('../monitorServerSocketJson');
-var monitor = new MonitorServerSocketJson(steper,infraccionesDB);
+// var monitor = new MonitorServerSocketJson(steper,infraccionesDB);
+var monitor = new MonitorServerSocketJson(steperSocketJson,infraccionesDB);
 
 // var SimuladorInfracciones = function (modo) {
 
@@ -41,7 +41,8 @@ amqp.connect(amqp_url, function(err, conn) {
         infraccionesDB.push(infraccion);
       }
 
-      steper.emit('step',infraccion,evento.tarea,evento.data);
+      // steper.emit('step',infraccion,evento.tarea,evento.data);
+      steperSocketJson.emit('step',infraccion,evento.tarea,evento.data);
       ch.ack(msg);
 
     }, {noAck: false});
