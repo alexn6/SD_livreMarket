@@ -23,7 +23,10 @@ var InfraccionesJssm = require('javascript-state-machine').factory({
     compra: new Object(),
     stepsQ: new Array(),
     // ************ parche del step ************
-    dataStepQ: new Array()
+    dataStepQ: new Array(),
+    // *****************************************
+    // ************ parche del stepSocket ************
+    mjesEnviados: new Array()
     // *****************************************
   },
 
@@ -60,8 +63,10 @@ var InfraccionesJssm = require('javascript-state-machine').factory({
       var msg =  {};
       msg.data = this.compra;
       msg.tarea = lifeCycle.transition;
-      publicar('compras',JSON.stringify(msg));
-      publicar('publicaciones',JSON.stringify(msg));
+      // publicar('compras',JSON.stringify(msg));
+      // publicar('publicaciones',JSON.stringify(msg));
+      publicar('compras', msg, this.mjesEnviados);
+      publicar('publicaciones', msg, this.mjesEnviados);
       return false;
     },
 
@@ -75,14 +80,42 @@ var InfraccionesJssm = require('javascript-state-machine').factory({
 });
 
 // helper para publicar un mensaje en el exchange de rabbitmq
-function publicar(topico,mensaje) {
+// function publicar(topico,mensaje) {
+//   amqp.connect(amqp_url, function(err, conn) {
+//     conn.createChannel(function(err, ch) {
+//       var ex = 'livre_market';
+//       ch.assertExchange(ex, 'topic', {durable: true});
+//       ch.publish(ex,topico, new Buffer(mensaje));
+//       //console.log(" [x] Sent %s: '%s'", topico, mensaje);
+//       console.log("[<][INFRACCIONES] ==> ["+topico+"] : envia %s", mensaje);
+//     });
+//   });
+// };
+
+// helper para publicar un mensaje en el exchange de rabbitmq
+function publicar(topico, mensaje, mjesEnviados) {
   amqp.connect(amqp_url, function(err, conn) {
     conn.createChannel(function(err, ch) {
       var ex = 'livre_market';
       ch.assertExchange(ex, 'topic', {durable: true});
-      ch.publish(ex,topico, new Buffer(mensaje));
-      //console.log(" [x] Sent %s: '%s'", topico, mensaje);
+      var msgString = JSON.stringify(mensaje);
+      // ch.publish(ex,topico, new Buffer(mensaje));
+      ch.publish(ex,topico, new Buffer(msgString));
       console.log("[<][INFRACCIONES] ==> ["+topico+"] : envia %s", mensaje);
+      console.log(mensaje);
+      // *****************************************************************
+      // parche para amacenar los mjes enviados
+      var dataMjeEnviado = {
+        tarea: null,
+        datos: null,
+        destino: null
+      }
+
+      dataMjeEnviado.tarea = mensaje.tarea;
+      dataMjeEnviado.datos = mensaje.data;
+      dataMjeEnviado.destino = topico;
+      mjesEnviados.push(dataMjeEnviado);
+      // *****************************************************************
     });
   });
 };

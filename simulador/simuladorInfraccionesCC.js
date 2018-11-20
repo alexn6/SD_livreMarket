@@ -29,6 +29,16 @@ amqp.connect(amqp_url, function(err, conn) {
       //console.log('se recibió el mensaje: ',evento);
       console.log('==> [INFRACCIONES]: se recibe la tarea  *** ',evento.tarea,' ***');
 
+      // ################################################################
+      // ########################### MODO STEP ##########################
+      var dataIngreso = {
+        id: evento.data.compraId,
+        accion: 'INGRESA',
+        tarea: null
+      }
+      dataIngreso.tarea = evento.tarea;
+      // ################################################################
+
       infraccion = _.find(infraccionesDB,function (compra) {
         return compra.compra.compraId == evento.data.compraId;
       });
@@ -41,9 +51,26 @@ amqp.connect(amqp_url, function(err, conn) {
         infraccionesDB.push(infraccion);
       }
 
+      // ################################################################
+      // ########################### MODO STEP ##########################
+      if(steperSocketJson.modo == 'step'){
+        monitor.ioServerMonitor.sockets.emit('mon-ingreso-tarea', dataIngreso);
+      }
+      // ################################################################
+
       // steper.emit('step',infraccion,evento.tarea,evento.data);
       steperSocketJson.emit('step',infraccion,evento.tarea,evento.data);
       ch.ack(msg);
+
+      // ################################################################
+      var tareas_pend = infraccion.stepsQ;   // actualizamos las tareas
+
+      // ################################################################
+      // ########################### MODO STEP ##########################
+      if(steperSocketJson.modo == 'step'){
+        monitor.ioServerMonitor.sockets.emit('update-tareas-pend', tareas_pend);
+      }
+      // ################################################################
 
     }, {noAck: false});
   });

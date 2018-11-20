@@ -351,7 +351,6 @@ function publicar(topico, mensaje, mjesEnviados) {
       dataMjeEnviado.tarea = mensaje.tarea;
       dataMjeEnviado.datos = mensaje.data;
       dataMjeEnviado.destino = topico;
-      //mjesEnviados.push("[<] [MENSAJE] ==> ["+topico+"] - | - dataMje: "+ mensaje);
       mjesEnviados.push(dataMjeEnviado);
       // *****************************************************************
     });

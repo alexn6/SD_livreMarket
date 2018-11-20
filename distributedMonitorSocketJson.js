@@ -3,6 +3,9 @@ const ioSock = require('socket.io-client');
 var portCompras = require('./properties.json').ports.compras;
 var portWeb = require('./properties.json').ports.web;
 var portPublicaciones = require('./properties.json').ports.publicaciones;
+var portInfracciones = require('./properties.json').ports.infracciones;
+var portPagos = require('./properties.json').ports.pagos;
+var portEnvios = require('./properties.json').ports.envios;
 
 // ############################################################
 // ############### parche para crear compra ###################
@@ -15,23 +18,43 @@ var factoryMjes = new SenderMjes();
 // require('console-error');
 // require('console-warn');
 
+// ###############################################################
+// ############### CONEXION XON LOS SERVIDORES ###################
+
 //var webIO = ioSock.connect('http://localhost:6002', {reconnect: true});
 var webIO = ioSock.connect('http://localhost:'+portWeb, {reconnect: true});
 webIO.on('connect', function (sock) {
-  console.log('Conectado al Monitor WEB desde DistMonSocJson!!!');
+  console.log('[SRV_WEB]: Conexion exitosa!!!');
 });
 
 //var comprasIO = ioSock.connect('http://localhost:6000', {reconnect: true});
 var comprasIO = ioSock.connect('http://localhost:'+portCompras, {reconnect: true});
 comprasIO.on('connect', function (sock) {
-  console.log('Conectado al Monitor COMPRAS desde DistMonSocJson!!!');
+  console.log('[SRV_COMPRAS]: Conexion exitosa!!!');
 });
 
-//var PublicacionesIO = ioSock.connect('http://localhost:6003', {reconnect: true});
-var PublicacionesIO = ioSock.connect('http://localhost:'+portPublicaciones, {reconnect: true});
-PublicacionesIO.on('connect', function (sock) {
-  console.log('Conectado al Monitor PUBLICACIONES desde DistMonSocJson!!!');
+//var publicacionesIO = ioSock.connect('http://localhost:6003', {reconnect: true});
+var publicacionesIO = ioSock.connect('http://localhost:'+portPublicaciones, {reconnect: true});
+publicacionesIO.on('connect', function (sock) {
+  console.log('[SRV_PUBLICACIONES]: Conexion exitosa!!!');
 });
+
+var infraccionesIO = ioSock.connect('http://localhost:'+portInfracciones, {reconnect: true});
+infraccionesIO.on('connect', function (sock) {
+  console.log('[SRV_INFRACCIONES]: Conexion exitosa!!!');
+});
+
+var pagosIO = ioSock.connect('http://localhost:'+portPagos, {reconnect: true});
+pagosIO.on('connect', function (sock) {
+  console.log('[SRV_PAGOS]: Conexion exitosa!!!');
+});
+
+var enviosIO = ioSock.connect('http://localhost:'+portEnvios, {reconnect: true});
+enviosIO.on('connect', function (sock) {
+  console.log('[SRV_ENVIOS]: Conexion exitosa!!!');
+});
+
+// ###############################################################
 
 var express = require('express');
 var app = express();
@@ -51,7 +74,7 @@ app.use(express.static('public'));
 // #################################################################
 
 io.on('connection', function(socket) {
-  console.log('Alguien se ha conectado con Sockets');
+  console.log('[SERVER_PUG]: conexion exitosa!!!');
 
   // mje de estado del servidor
   socket.on('mje-status', function(from, msg) {
@@ -89,8 +112,8 @@ io.on('connection', function(socket) {
   socket.on('all-status', function(){
     console.log("[DIST_MON]: Se recibio el mje <all-status> del SERVER-PUG");
     
-    // pedimos el estaod de todos los servidores
-    for (cli of [comprasIO]) {
+    // pedimos el estado de todos los servidores
+    for (cli of [comprasIO, webIO, publicacionesIO, pagosIO, infraccionesIO, enviosIO]) {
       console.log("[DIST_MON]: Se pide <srv-status> al MonSrv");
       cli.emit('srv-status');
     }
@@ -156,54 +179,240 @@ io.on('connection', function(socket) {
 
 // 
 comprasIO.on('resp-mje-getAllCompras', function(data) {
-  console.log("[resp-mje-getAllCompras]: Mje recibido del Monitor-IO: ",data);
+  console.log("[resp-mje-getAllCompras]: Mje recibido del Monitor-IO (COMPRAS): ",data);
   // se envia la info al server PUG
   io.sockets.emit('resp-mje-status', data);
 })
 comprasIO.on('detalle-mje-getAllCompras', function(data) {
-  console.log("[detalle-mje-getAllCompras]: Mje recibido del Monitor-IO: ",data);
+  console.log("[detalle-mje-getAllCompras]: Mje recibido del Monitor-IO (COMPRAS): ",data);
   // se envia la info al server PUG
   io.sockets.emit('resp-mje-status-detalle', data);
 })
 
 // respuesta del sig paso
 comprasIO.on('resp-mje-step', function(data) {
-  console.log("[resp-mje-step]: Mje recibido del Monitor-IO: ",data);
+  console.log("[resp-mje-step]: Mje recibido del Monitor-IO (COMPRAS): ",data);
   // se envia la info al server PUG
   io.sockets.emit('resp-next-step', data);
 })
 
 // escuchamos la resp del Monitor-IO
 comprasIO.on('resp-mje-env-step', function(data) {
-  console.log("[resp-mje-env-step]: Mje recibido del Monitor-IO: ",data);
+  console.log("[resp-mje-env-step]: Mje recibido del Monitor-IO (COMPRAS): ",data);
   // se envia la info al server PUG
   io.sockets.emit('resp-env-step', data);
 })
 
 // escuchamos la resp del Monitor-IO del estado del servidor
 comprasIO.on('resp-srv-status', function(data) {
-  console.log("[resp-srv-status]: Mje recibido del Monitor-IO: ",data);
+  console.log("[resp-srv-status]: Mje recibido del Monitor-IO (COMPRAS): ",data);
   // se envia la info al server PUG
   io.sockets.emit('srv-compras-status', data);
 })
 
 // ecuchamos acutualizaciones de tareas pendientes
 comprasIO.on('update-tareas-pend', function(data) {
-  console.log("[update-tareas-pend]: Mje recibido del Monitor-IO: ",data);
+  console.log("[update-tareas-pend]: Mje recibido del Monitor-IO (COMPRAS): ",data);
   // se envia la info al server PUG
   io.sockets.emit('tareas_pend_comp', data);
 })
 
 // ecuchamos la creacion de nuevas compras
 comprasIO.on('update-cant-compras', function(data) {
-  console.log("[update-cant-compras]: Mje recibido del Monitor-IO: ",data);
+  console.log("[update-cant-compras]: Mje recibido del Monitor-IO (COMPRAS): ",data);
   // se envia la info al server PUG
   io.sockets.emit('upd_compras', data);
 })
 
 // ##############################################
-// ############## MON- ###################
+// ################## MON-WEB ###################
 
+// escuchamos la resp del Monitor-IO del estado del servidor
+webIO.on('resp-srv-status', function(data) {
+  console.log("[resp-srv-status]: Mje recibido del Monitor-IO (WEB): ",data);
+  // se envia la info al server PUG
+  io.sockets.emit('srv-web-status', data);
+})
+
+// escuchamos cuando ingresa una tarea
+webIO.on('mon-ingreso-tarea', function(data) {
+  console.log("[mon-ingreso-tarea]: Mje recibido del Monitor-IO (WEB): ",data);
+  // se envia la info al server PUG
+  io.sockets.emit('tarea-ing-web', data);
+})
+
+// ecuchamos acutualizaciones de tareas pendientes
+webIO.on('update-tareas-pend', function(data) {
+  console.log("[update-tareas-pend]: Mje recibido del Monitor-IO (WEB): ",data);
+  // se envia la info al server PUG
+  io.sockets.emit('tareas-pend-web', data);
+})
+
+// respuesta del sig paso
+webIO.on('resp-mje-step', function(data) {
+  console.log("[resp-mje-step]: Mje recibido del Monitor-IO (WEB): ",data);
+  // se envia la info al server PUG
+  io.sockets.emit('resp-next-step-web', data);
+})
+
+// escuchamos la resp del Monitor-IO de los mjes enviados
+webIO.on('resp-mje-env-step', function(data) {
+  console.log("[resp-mje-env-step]: Mje recibido del Monitor-IO (WEB): ",data);
+  // se envia la info al server PUG
+  io.sockets.emit('resp-mjes-env-web', data);
+})
+
+// ##############################################
+// ############# MON-PUBLICACIONES ##############
+
+// escuchamos la resp del Monitor-IO del estado del servidor
+publicacionesIO.on('resp-srv-status', function(data) {
+  console.log("[resp-srv-status]: Mje recibido del Monitor-IO (PUBLICACIONES): ",data);
+  // se envia la info al server PUG
+  io.sockets.emit('srv-pub-status', data);
+})
+
+// escuchamos cuando ingresa una tarea
+publicacionesIO.on('mon-ingreso-tarea', function(data) {
+  console.log("[mon-ingreso-tarea]: Mje recibido del Monitor-IO (PUBLICACIONES): ",data);
+  // se envia la info al server PUG
+  io.sockets.emit('tarea-ing-pub', data);
+})
+
+// ecuchamos acutualizaciones de tareas pendientes
+publicacionesIO.on('update-tareas-pend', function(data) {
+  console.log("[update-tareas-pend]: Mje recibido del Monitor-IO (PUBLICACIONES): ",data);
+  // se envia la info al server PUG
+  io.sockets.emit('tareas-pend-pub', data);
+})
+
+// respuesta del sig paso
+publicacionesIO.on('resp-mje-step', function(data) {
+  console.log("[resp-mje-step]: Mje recibido del Monitor-IO (PUBLICACIONES): ",data);
+  // se envia la info al server PUG
+  io.sockets.emit('resp-next-step-pub', data);
+})
+
+// escuchamos la resp del Monitor-IO de los mjes enviados
+publicacionesIO.on('resp-mje-env-step', function(data) {
+  console.log("[resp-mje-env-step]: Mje recibido del Monitor-IO (PUBLICACIONES): ",data);
+  // se envia la info al server PUG
+  io.sockets.emit('resp-mjes-env-pub', data);
+})
+
+// ##############################################
+// ################# MON-PAGOS ##################
+
+// escuchamos la resp del Monitor-IO del estado del servidor
+pagosIO.on('resp-srv-status', function(data) {
+  console.log("[resp-srv-status]: Mje recibido del Monitor-IO (PAGOS): ",data);
+  // se envia la info al server PUG
+  io.sockets.emit('srv-pagos-status', data);
+})
+
+// escuchamos cuando ingresa una tarea
+pagosIO.on('mon-ingreso-tarea', function(data) {
+  console.log("[mon-ingreso-tarea]: Mje recibido del Monitor-IO (PAGOS): ",data);
+  // se envia la info al server PUG
+  io.sockets.emit('tarea-ing-pagos', data);
+})
+
+// ecuchamos acutualizaciones de tareas pendientes
+pagosIO.on('update-tareas-pend', function(data) {
+  console.log("[update-tareas-pend]: Mje recibido del Monitor-IO (PAGOS): ",data);
+  // se envia la info al server PUG
+  io.sockets.emit('tareas-pend-pagos', data);
+})
+
+// respuesta del sig paso
+pagosIO.on('resp-mje-step', function(data) {
+  console.log("[resp-mje-step]: Mje recibido del Monitor-IO (PAGOS): ",data);
+  // se envia la info al server PUG
+  io.sockets.emit('resp-next-step-pagos', data);
+})
+
+// escuchamos la resp del Monitor-IO de los mjes enviados
+pagosIO.on('resp-mje-env-step', function(data) {
+  console.log("[resp-mje-env-step]: Mje recibido del Monitor-IO (PAGOS): ",data);
+  // se envia la info al server PUG
+  io.sockets.emit('resp-mjes-env-pagos', data);
+})
+
+// ##############################################
+// ############# MON-INFRACCIONES ###############
+
+// escuchamos la resp del Monitor-IO del estado del servidor
+infraccionesIO.on('resp-srv-status', function(data) {
+  console.log("[resp-srv-status]: Mje recibido del Monitor-IO (INFRACCIONES): ",data);
+  // se envia la info al server PUG
+  io.sockets.emit('srv-infrac-status', data);
+})
+
+// escuchamos cuando ingresa una tarea
+infraccionesIO.on('mon-ingreso-tarea', function(data) {
+  console.log("[mon-ingreso-tarea]: Mje recibido del Monitor-IO (INFRACCIONES): ",data);
+  // se envia la info al server PUG
+  io.sockets.emit('tarea-ing-infrac', data);
+})
+
+// ecuchamos acutualizaciones de tareas pendientes
+infraccionesIO.on('update-tareas-pend', function(data) {
+  console.log("[update-tareas-pend]: Mje recibido del Monitor-IO (INFRACCIONES): ",data);
+  // se envia la info al server PUG
+  io.sockets.emit('tareas-pend-infrac', data);
+})
+
+// respuesta del sig paso
+infraccionesIO.on('resp-mje-step', function(data) {
+  console.log("[resp-mje-step]: Mje recibido del Monitor-IO (INFRACCIONES): ",data);
+  // se envia la info al server PUG
+  io.sockets.emit('resp-next-step-infrac', data);
+})
+
+// escuchamos la resp del Monitor-IO de los mjes enviados
+infraccionesIO.on('resp-mje-env-step', function(data) {
+  console.log("[resp-mje-env-step]: Mje recibido del Monitor-IO (INFRACCIONES): ",data);
+  // se envia la info al server PUG
+  io.sockets.emit('resp-mjes-env-infrac', data);
+})
+
+// ##############################################
+// ################# MON-ENVIOS #################
+
+// escuchamos la resp del Monitor-IO del estado del servidor
+enviosIO.on('resp-srv-status', function(data) {
+  console.log("[resp-srv-status]: Mje recibido del Monitor-IO (ENVIOS): ",data);
+  // se envia la info al server PUG
+  io.sockets.emit('srv-envios-status', data);
+})
+
+// escuchamos cuando ingresa una tarea
+enviosIO.on('mon-ingreso-tarea', function(data) {
+  console.log("[mon-ingreso-tarea]: Mje recibido del Monitor-IO (ENVIOS): ",data);
+  // se envia la info al server PUG
+  io.sockets.emit('tarea-ing-envios', data);
+})
+
+// ecuchamos acutualizaciones de tareas pendientes
+enviosIO.on('update-tareas-pend', function(data) {
+  console.log("[update-tareas-pend]: Mje recibido del Monitor-IO (ENVIOS): ",data);
+  // se envia la info al server PUG
+  io.sockets.emit('tareas-pend-envios', data);
+})
+
+// respuesta del sig paso
+enviosIO.on('resp-mje-step', function(data) {
+  console.log("[resp-mje-step]: Mje recibido del Monitor-IO (ENVIOS): ",data);
+  // se envia la info al server PUG
+  io.sockets.emit('resp-next-step-envios', data);
+})
+
+// escuchamos la resp del Monitor-IO de los mjes enviados
+enviosIO.on('resp-mje-env-step', function(data) {
+  console.log("[resp-mje-env-step]: Mje recibido del Monitor-IO (ENVIOS): ",data);
+  // se envia la info al server PUG
+  io.sockets.emit('resp-mjes-env-envios', data);
+})
 
 // ####################################################
 // ################ Funciones privadas ################
@@ -219,10 +428,19 @@ function resolverCliente(server){
       cliente = comprasIO;
       break;
     case 'publicaciones':
-      cliente = Publicaciones;
+      cliente = publicacionesIO;
       break;
     case 'web':
-      cliente = web;
+      cliente = webIO;
+      break;
+    case 'infracciones':
+      cliente = infraccionesIO;
+      break;
+    case 'pagos':
+      cliente = pagosIO;
+      break;
+    case 'envios':
+      cliente = enviosIO;
       break;
     default:
       console.log("Servidor desconocido");

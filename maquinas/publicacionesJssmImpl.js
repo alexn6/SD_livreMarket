@@ -36,7 +36,10 @@ var PublicacionesJssm = require('javascript-state-machine').factory({
     compra: new Object(),
     stepsQ: new Array(),
     // ************ parche del step ************
-    dataStepQ: new Array()
+    dataStepQ: new Array(),
+    // *****************************************
+    // ************ parche del stepSocket ************
+    mjesEnviados: new Array()
     // *****************************************
   },
 

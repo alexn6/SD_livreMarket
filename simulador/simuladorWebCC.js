@@ -30,6 +30,16 @@ amqp.connect(amqp_url, function(err, conn) {
       //console.log('se recibió el mensaje: ',evento);
       console.log('==> [WEB]: se recibe la tarea  *** ',evento.tarea,' ***');
 
+      // ################################################################
+      // ########################### MODO STEP ##########################
+      var dataIngreso = {
+        id: evento.data.compraId,
+        accion: 'INGRESA',
+        tarea: null
+      }
+      dataIngreso.tarea = evento.tarea;
+      // ################################################################
+
       web = _.find(webDB,function (compra) {
         return compra.compra.compraId == evento.data.compraId;
       });
@@ -42,15 +52,42 @@ amqp.connect(amqp_url, function(err, conn) {
         web = new WebJssm();
         web.compra = evento.data;
         webDB.push(web);
+
+        // ################################################################
+        // ########################### MODO STEP ##########################
+        // actualizamos la cant de cmpras (ver si se muestra la cant de web)
+        // if(steperSocketJson.modo == 'step'){
+        //   monitor.ioServerMonitor.sockets.emit('update-cant-compras', comprasDB.length);
+        // }
+        // ################################################################
       }
 
-      // console.log('simuladorPublicacionesCC 2 --> ',evento.tarea);
-      // console.log('simuladorPublicacionesCC 3 --> ',evento.data);
-      // console.log('simuladorPublicacionesCC 4 --> ',publicacion);
+      // ################################################################
+      // ########################### MODO STEP ##########################
+      if(steperSocketJson.modo == 'step'){
+        monitor.ioServerMonitor.sockets.emit('mon-ingreso-tarea', dataIngreso);
+      }
+      // ################################################################
 
       // steper.emit('step',web,evento.tarea,evento.data);
       steperSocketJson.emit('step',web,evento.tarea,evento.data);
       ch.ack(msg);
+
+      // ################################################################
+      // se envia la misma info al SERVER PUG (solo en modo NORMAL)
+      if(steperSocketJson.modo == 'normal'){
+        monitor.ioServerMonitor.sockets.emit('detalle-mje-getAllCompras', '[>] [TRANSICION] : se ejecuta '+evento.tarea+' - datos: '+evento.data);
+      }
+      // ################################################################
+      // actualizamos las tareas
+      var tareas_pend = web.stepsQ;
+
+      // ################################################################
+      // ########################### MODO STEP ##########################
+      if(steperSocketJson.modo == 'step'){
+        monitor.ioServerMonitor.sockets.emit('update-tareas-pend', tareas_pend);
+      }
+      // ################################################################
 
     }, {noAck: false});
   });
