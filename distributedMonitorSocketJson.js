@@ -13,45 +13,65 @@ var SenderMjes = require('./sendMje');
 var factoryMjes = new SenderMjes();
 
 // ############################################################
-
-// require('console-info');
-// require('console-error');
-// require('console-warn');
+// ############### parche para controlar serv ###################
+var AdminServer = require('./simulador/adminServers');
+var adminServer = new AdminServer();
 
 // ###############################################################
-// ############### CONEXION XON LOS SERVIDORES ###################
+// ############### CONEXION CON LOS SERVIDORES ###################
 
-//var webIO = ioSock.connect('http://localhost:6002', {reconnect: true});
 var webIO = ioSock.connect('http://localhost:'+portWeb, {reconnect: true});
 webIO.on('connect', function (sock) {
   console.log('[SRV_WEB]: Conexion exitosa!!!');
 });
+webIO.on('disconnect', function(){
+  // mandar la señal de servidor caido al server PUG
+  io.sockets.emit('srv-web-status', "INACTIVO");
+});
 
-//var comprasIO = ioSock.connect('http://localhost:6000', {reconnect: true});
 var comprasIO = ioSock.connect('http://localhost:'+portCompras, {reconnect: true});
 comprasIO.on('connect', function (sock) {
   console.log('[SRV_COMPRAS]: Conexion exitosa!!!');
 });
+comprasIO.on('disconnect', function(){
+  // mandar la señal de servidor caido al server PUG
+  io.sockets.emit('srv-compras-status', "INACTIVO");
+});
 
-//var publicacionesIO = ioSock.connect('http://localhost:6003', {reconnect: true});
 var publicacionesIO = ioSock.connect('http://localhost:'+portPublicaciones, {reconnect: true});
 publicacionesIO.on('connect', function (sock) {
   console.log('[SRV_PUBLICACIONES]: Conexion exitosa!!!');
+});
+publicacionesIO.on('disconnect', function(){
+  // mandar la señal de servidor caido al server PUG
+  io.sockets.emit('srv-pub-status', "INACTIVO");
 });
 
 var infraccionesIO = ioSock.connect('http://localhost:'+portInfracciones, {reconnect: true});
 infraccionesIO.on('connect', function (sock) {
   console.log('[SRV_INFRACCIONES]: Conexion exitosa!!!');
 });
+infraccionesIO.on('disconnect', function(){
+  // mandar la señal de servidor caido al server PUG
+  io.sockets.emit('srv-infrac-status', "INACTIVO");
+});
 
 var pagosIO = ioSock.connect('http://localhost:'+portPagos, {reconnect: true});
 pagosIO.on('connect', function (sock) {
   console.log('[SRV_PAGOS]: Conexion exitosa!!!');
 });
+pagosIO.on('disconnect', function(){
+  // mandar la señal de servidor caido al server PUG
+  io.sockets.emit('srv-pagos-status', "INACTIVO");
+});
 
 var enviosIO = ioSock.connect('http://localhost:'+portEnvios, {reconnect: true});
 enviosIO.on('connect', function (sock) {
   console.log('[SRV_ENVIOS]: Conexion exitosa!!!');
+});
+enviosIO.on('disconnect', function(){
+  // mandar la señal de servidor caido al server PUG
+  io.sockets.emit('srv-envios-status', "INACTIVO");
 });
 
 // ###############################################################
@@ -125,6 +145,26 @@ io.on('connection', function(socket) {
     console.log("[DIST_MON]: Se recibio el mje <create-compra> del SERVER-PUG");
     // manda el mjes a la cola de compras para crear una compra nueva
     factoryMjes.create();
+  });
+
+  // inicia el servidor especificado
+  socket.on('start-server', function(server, modo) {
+    console.log("[start-server]: Se toma el mje del SERVER-PUG");
+
+    adminServer.initServer(server, modo);
+    
+    //io.sockets.emit('resp-start-server', server, modo);
+    
+  });
+
+  // detiene el servidor especificado
+  socket.on('stop-server', function(server) {
+    console.log("[stop-server]: Se toma el mje del SERVER-PUG");
+
+    adminServer.stopServer(server);
+    
+    //io.sockets.emit('resp-start-server', server, modo);
+    
   });
 
   // socket.on('end',function () {
@@ -418,7 +458,7 @@ enviosIO.on('resp-mje-env-step', function(data) {
 // ################ Funciones privadas ################
 
 function resolverCliente(server){
-  console.log("Se va a resolver cliente: "+server);
+  // console.log("Se va a resolver cliente: "+server);
   var cliente = null;
   switch (server) {
     case 'compras':
