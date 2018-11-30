@@ -1,0 +1,8 @@
+{
+    "web": "db_serv_web",
+    "compras": "db_serv_compras",
+    "infracciones": "db_serv_infracciones",
+    "pagos": "db_serv_pagos",
+    "envios": "db_serv_envios",
+    "publicaciones": "db_serv_publicaciones"
+}

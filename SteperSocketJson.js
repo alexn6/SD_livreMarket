@@ -24,10 +24,8 @@ function SteperSocketJson(modo) {
         steps = jssmObject[transition](data);
       } else {
         console.log("Se guarda la trans: "+transition);
-        // console.log(data);
         jssmObject.stepsQ.push(transition);
         jssmObject.dataStepQ[transition] = data;
-        // console.log(jssmObject);
       }
 
       // console.log('steps --> ',steps);
@@ -51,7 +49,8 @@ function SteperSocketJson(modo) {
   });
 
   // evento que escucha el paso a paso (compra step 0 -> desde el distributedMonitor)
-  this.on('manualStep',function (jssmObject) {
+  // this.on('manualStep',function (jssmObject) {
+    this.on('manualStep',function (jssmObject, dataClientVisual) {
     this.cantManualStep++;
     console.log("###########************** EJECUCION MANUAL STEP ["+this.cantManualStep+"] ###########**************");
     console.log(jssmObject.stepsQ);
@@ -64,11 +63,18 @@ function SteperSocketJson(modo) {
       this.emit('ejec_trans', "[>][TRANSICION]: Se ejecuta === "+transition+" ===");
       try {
         console.log(" [MANUAL STEP]: => Se ejecuta === "+transition+" ===");
+        var dataTransicion = jssmObject.dataStepQ[transition];
+        if((typeof(dataTransicion) == 'undefined')&&(dataClientVisual != null)){
+          console.log("[Steper]: toma los datos del cliente");
+          console.log(dataClientVisual);
+          dataTransicion = dataClientVisual;
+        }
         console.log(" [MANUAL STEP]: *********** Datos *********** ");
-        // si los datso = undefined entonces no se recibe una tarea
         // solo se ejecuta una transicion
-        console.log(jssmObject.dataStepQ[transition]);
-        steps = jssmObject[transition](jssmObject.dataStepQ[transition]);
+        // console.log(jssmObject.dataStepQ[transition]);
+        // steps = jssmObject[transition](jssmObject.dataStepQ[transition]);
+        console.log(dataTransicion);
+        steps = jssmObject[transition](dataTransicion);
         if (steps) {
           // se requiere ejecutar la lista de transiciones luego de este paso
           for (const step of steps) {

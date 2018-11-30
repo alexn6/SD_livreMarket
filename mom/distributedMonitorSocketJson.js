@@ -1,11 +1,11 @@
 var _ = require('underscore');
 const ioSock = require('socket.io-client');
-var portCompras = require('./properties.json').ports.compras;
-var portWeb = require('./properties.json').ports.web;
-var portPublicaciones = require('./properties.json').ports.publicaciones;
-var portInfracciones = require('./properties.json').ports.infracciones;
-var portPagos = require('./properties.json').ports.pagos;
-var portEnvios = require('./properties.json').ports.envios;
+var portCompras = require('../properties.json').ports.compras;
+var portWeb = require('../properties.json').ports.web;
+var portPublicaciones = require('../properties.json').ports.publicaciones;
+var portInfracciones = require('../properties.json').ports.infracciones;
+var portPagos = require('../properties.json').ports.pagos;
+var portEnvios = require('../properties.json').ports.envios;
 
 // ############################################################
 // ############### parche para crear compra ###################
@@ -14,7 +14,7 @@ var factoryMjes = new SenderMjes();
 
 // ############################################################
 // ############### parche para controlar serv ###################
-var AdminServer = require('./simulador/adminServers');
+var AdminServer = require('./adminServers');
 var adminServer = new AdminServer();
 
 // ###############################################################
@@ -114,14 +114,16 @@ io.on('connection', function(socket) {
   });
 
   // mje de siguiente paso
-  socket.on('next-step', function(from, idCompra){
-    console.log("Se recibio el mje <next-step> del SERVER-PUG");
+  //socket.on('next-step', function(from, idCompra){
+  socket.on('next-step', function(from, idCompra, data){
+    console.log("[next-step]: Se recibio el mje del SERVER-PUG");
     var cliente = resolverCliente(from);
     // mandamos el estado correspodiente
     if (cliente != null) {
       console.log("[next-step]: Mje enviado al monitor-io desde el disMonSocJson");
       // enviamos el mje al cliente
-      cliente.emit('step', idCompra);
+      //cliente.emit('step', idCompra);
+      cliente.emit('step', idCompra, data);
     }
     else{
       io.sockets.emit('resp-next-step','Servidor desconocido:'+from+'\n');
@@ -142,9 +144,9 @@ io.on('connection', function(socket) {
 
   // se encarga de crear una compra desde cualquiera de los servidores
   socket.on('create-compra', function(data) {
-    console.log("[DIST_MON]: Se recibio el mje <create-compra> del SERVER-PUG");
+    console.log("[create-compra]: Se recibio el mje del SERVER-PUG");
     // manda el mjes a la cola de compras para crear una compra nueva
-    factoryMjes.create();
+    factoryMjes.create(data);
   });
 
   // inicia el servidor especificado
@@ -162,6 +164,28 @@ io.on('connection', function(socket) {
     console.log("[stop-server]: Se toma el mje del SERVER-PUG");
 
     adminServer.stopServer(server);
+    
+    //io.sockets.emit('resp-start-server', server, modo);
+    
+  });
+
+  // solicita al servidor que realize un backup
+  // socket.on('backup-server', function(server) {
+  //   console.log("[backup-server]: Se toma el mje del SERVER-PUG ->"+server);
+    
+  //   var cliente = resolverCliente(server);
+  //   // mandamos el estado correspodiente
+  //   if (cliente != null) {
+  //     console.log("[backup-server]: se encuentra el cliente, reenvia el mje");
+  //     cliente.emit('srv-backup');
+  //   }
+  // });
+
+  // detiene el servidor especificado
+  socket.on('recuperacion-server', function(server) {
+    console.log("[recuperacion-server]: Se toma el mje del SERVER-PUG");
+
+    adminServer.reestablishServer(server, "normal");
     
     //io.sockets.emit('resp-start-server', server, modo);
     

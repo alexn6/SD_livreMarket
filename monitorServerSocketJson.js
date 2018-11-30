@@ -2,7 +2,7 @@ const express = require('express');
 var _ = require('underscore');
 
 // #####################################################
-// ####################### SREVER ######################
+// ####################### SERVER ######################
 
 var appMonitor = express();
 var serverIO = require('http').Server(appMonitor);
@@ -50,8 +50,10 @@ var MonitorServerSocketJson = function (steper,comprasDB, status) {
     // ##################################################################
     // ########################## EVENTO STEP ###########################
 
-    sock.on('step',function (data) {
-      var idCompra = data;
+    // sock.on('step',function (data) {
+    //   var idCompra = data;
+    sock.on('step',function (dataId, dataCompra) {
+      var idCompra = dataId;
       var dataResponse = {
         id: idCompra,
         accion: null,
@@ -74,7 +76,8 @@ var MonitorServerSocketJson = function (steper,comprasDB, status) {
         dataResponse.accion = 'EJECUCION';
         dataResponse.tarea = dataEjecucion.transicion;
 
-        steper.emit('manualStep',compra);
+        // steper.emit('manualStep',compra);
+        steper.emit('manualStep', compra, dataCompra);
       }
       else {
         dataResponse = 'No se encontró la compra: ' + idCompra;
@@ -95,6 +98,19 @@ var MonitorServerSocketJson = function (steper,comprasDB, status) {
         }
       }
     });
+
+    // ##################################################################
+    // ########################## EVENTO BACKUP #########################
+
+    // sock.on('srv-backup',function () {
+    //   // console.log('[STATUS_MON]: '+status);
+    //   // aca se hace el backup de los datos
+    //   var dataBackup = getDataBackup(comprasDB);
+    //   console.log("Datos para el backup:");
+    //   console.log(dataBackup);
+    //   //adminBackups.saveData(arrayObjectJssm, nameServer);
+    //   // ########### hacer la recuperacion de los datos objeto y nombre del server
+    // });
 
     // ##################################################################
     // ########################## EVENTO STATUS #########################

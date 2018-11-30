@@ -2,9 +2,9 @@ var amqp = require('amqplib/callback_api');
 var amqp_url = require('../properties.json').amqp.url;
 
 // recuperamoslos datos corrspondiente a cada escenario
-//var datosSimulacion = require('../datosSimulacion.json').compraConInfraccion;
-var datosSimulacion = require('../datosSimulacion.json').compraPagoRechazado;
-//var datosSimulacion = require('../datosSimulacion.json').compraExitosaPorCorreo;
+//var datosSimulacion = require('../mom/datosSimulacion.json').compraConInfraccion;
+var datosSimulacion = require('../mom/datosSimulacion.json').compraPagoRechazado;
+//var datosSimulacion = require('../mom/datosSimulacion.json').compraExitosaPorCorreo;
 
 var _ = require("underscore");
 var StateMachineHistory = require('javascript-state-machine/lib/history')
@@ -54,8 +54,14 @@ var InfraccionesJssm = require('javascript-state-machine').factory({
       //console.log('onResolverInfraccion: data --> ',data);
       // this.compra.hasInfraccion = Math.random() > 0.7 ? true : false;
       // this.compra.hasInfraccion = true;
-      // this.compra.hasInfraccion = false;
-      this.compra.hasInfraccion = datosSimulacion.hasInfraccion;
+      // si esq el cliente setea un parameto
+      if(data != null){
+        this.compra.hasInfraccion = data.hasInfraccion;
+        console.log("[resolvInfrac]: data -> "+data.hasInfraccion);
+      }
+      else{
+        this.compra.hasInfraccion = datosSimulacion.hasInfraccion;
+      }
       return ['informarInfraccion'];
     },
 

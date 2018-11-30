@@ -2,14 +2,31 @@ var amqp = require('amqplib/callback_api');
 var amqp_url = require('../properties.json').amqp.url;
 
 // recuperamoslos datos corrspondiente a cada escenario
-//var datosSimulacion = require('../datosSimulacion.json').compraConInfraccion;
-var datosSimulacion = require('../datosSimulacion.json').compraPagoRechazado;
-//var datosSimulacion = require('../datosSimulacion.json').compraExitosaPorCorreo;
+//var datosSimulacion = require('../mom/datosSimulacion.json').compraConInfraccion;
+var datosSimulacion = require('../mom/datosSimulacion.json').compraPagoRechazado;
+//var datosSimulacion = require('../mom/datosSimulacion.json').compraExitosaPorCorreo;
 
 var _ = require("underscore");
 var StateMachineHistory = require('javascript-state-machine/lib/history')
 
 var WebJssm = require('javascript-state-machine').factory({
+
+// ###################################################
+// ################# parche custom ###################
+// var WebJssm = function(stateInit) {
+//   this.name = "algun estado";
+//   this.state = stateInit;
+//   this._fsm(); //  <-- IMPORTANT
+// }
+
+// WebJssm.prototype = {
+//   myStatus: function() {
+//     console.log('Mi estado es ' + this.state);
+//   }
+// }
+// require('javascript-state-machine').factory(WebJssm, {
+  // init: this.state || 'compraGenerada',
+// ###################################################
   init: 'compraGenerada',
   transitions: [
     {name:'solicitarEntrega',         from:'*',                                               to:'resolviendoEntrega'},

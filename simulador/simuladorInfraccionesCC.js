@@ -7,6 +7,10 @@ var InfraccionesJssm = require('../maquinas/infraccionJssmImpl');
 var SteperSocketJson = require('../SteperSocketJson');
 var steperSocketJson = new SteperSocketJson(process.argv[2]);
 
+// para manejar la persistencia de los datos
+var AdminBackups = require('../mom/adminBackups');
+var adminBackups = new AdminBackups();
+
 var infraccionesDB = new Array();
 var infraccion;
 
@@ -16,7 +20,13 @@ var MonitorServerSocketJson = require('../monitorServerSocketJson');
 // var monitor = new MonitorServerSocketJson(steper,infraccionesDB);
 var monitor = new MonitorServerSocketJson(steperSocketJson,infraccionesDB);
 
-// var SimuladorInfracciones = function (modo) {
+// ############################################################
+// ############### recuperacion del servidor ##################
+var recuperarServer = process.argv[3];
+if(typeof(recuperarServer) != 'undefined'){
+  recuperarInfoDB();
+}
+// ############################################################
 
 amqp.connect(amqp_url, function(err, conn) {
   conn.createChannel(function(err, ch) {
@@ -76,9 +86,33 @@ amqp.connect(amqp_url, function(err, conn) {
   });
 });
 
-// monitor.server.listen(6001, function () {
-//   console.log('Servidor MONITOR escuchando en el puerto %j', monitor.server.address());
-// });
+// ################################################################
+// #################### PARCHE PERSISTENCIA #######################
+adminBackups.saveData(infraccionesDB);
+// ################################################################
+
+function recuperarInfoDB(){
+  adminBackups.getDataDbPromise('INFRACCIONES').then(function(result){
+    console.log("Rdo de la promise en INFRACCIONES");
+    console.log(result);
+
+    var arrayObjectJssm = result.data_jssm;
+
+    //vamos llenando la lista con las compras ya creadas, las objectJssm creados
+    for (let i = 0; i < arrayObjectJssm.length; i++) {
+      const datosObjectWeb = arrayObjectJssm[i];
+      infraccion = new InfraccionesJssm();  // creamos la nueva maquina
+      // seteamos los valores
+      infraccion.compra = datosObjectWeb.data_compra;
+      infraccion._fsm.state = datosObjectWeb.current_status;
+      infraccion.history = datosObjectWeb.history;
+      infraccionesDB.push(infraccion);
+    }
+
+    // mandar mje al server pug de serv recuperado (ver que info mandar en el mje)
+
+  });
+}
 
 monitor.serverIO.listen(6001, function () {
   console.log('Servidor MONITOR-IO de compras escuchando en localhost:6001..')

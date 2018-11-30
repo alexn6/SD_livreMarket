@@ -8,6 +8,10 @@ var PublicacionesJssm = require('../maquinas/publicacionesJssmImpl');
 var SteperSocketJson = require('../SteperSocketJson');
 var steperSocketJson = new SteperSocketJson(process.argv[2]);
 
+// para manejar la persistencia de los datos
+var AdminBackups = require('../mom/adminBackups');
+var adminBackups = new AdminBackups();
+
 var PublicacionesDB = new Array();
 var publicacion;
 
@@ -17,7 +21,13 @@ var MonitorServerSocketJson = require('../monitorServerSocketJson');
 // var monitor = new MonitorServerSocketJson(steper,PublicacionesDB);
 var monitor = new MonitorServerSocketJson(steperSocketJson,PublicacionesDB);
 
-// var SimuladorPublicaciones = function (modo) {
+// ############################################################
+// ############### recuperacion del servidor ##################
+var recuperarServer = process.argv[3];
+if(typeof(recuperarServer) != 'undefined'){
+  recuperarInfoDB();
+}
+// ############################################################
 
 amqp.connect(amqp_url, function(err, conn) {
   conn.createChannel(function(err, ch) {
@@ -76,9 +86,35 @@ amqp.connect(amqp_url, function(err, conn) {
   });
 });
 
-// monitor.server.listen(6003, function () {
-//   console.log('Servidor MONITOR escuchando en el puerto %j', monitor.server.address());
-// });
+// ################################################################
+// #################### PARCHE PERSISTENCIA #######################
+adminBackups.saveData(PublicacionesDB);
+// ################################################################
+
+function recuperarInfoDB(){
+
+  adminBackups.getDataDbPromise('PUBLICACIONES').then(function(result){
+    console.log("Rdo de la promise en PUBLICACIONES");
+    console.log(result);
+
+    var arrayObjectJssm = result.data_jssm;
+
+    //vamos llenando la lista con las compras ya creadas, las objectJssm creados
+    for (let i = 0; i < arrayObjectJssm.length; i++) {
+      const datosObjectWeb = arrayObjectJssm[i];
+      publicacion = new PublicacionesJssm();  // creamos la nueva maquina
+      // seteamos los valores
+      publicacion.compra = datosObjectWeb.data_compra;
+      publicacion._fsm.state = datosObjectWeb.current_status;
+      publicacion.history = datosObjectWeb.history;
+      PublicacionesDB.push(publicacion);
+    }
+
+    // mandar mje al server pug de serv recuperado (ver que info mandar en el mje)
+
+  });
+
+}
 
 monitor.serverIO.listen(6003, function () {
   console.log('Servidor MONITOR-IO de publicaciones escuchando en localhost:6003..')

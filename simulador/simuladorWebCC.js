@@ -8,6 +8,10 @@ var WebJssm = require('../maquinas/webJssmImpl');
 var SteperSocketJson = require('../SteperSocketJson');
 var steperSocketJson = new SteperSocketJson(process.argv[2]);
 
+// para manejar la persistencia de los datos
+var AdminBackups = require('../mom/adminBackups');
+var adminBackups = new AdminBackups();
+
 var webDB = new Array();
 var web;
 
@@ -17,7 +21,13 @@ var MonitorServerSocketJson = require('../monitorServerSocketJson');
 // var monitor = new MonitorServerSocketJson(steper,webDB);
 var monitor = new MonitorServerSocketJson(steperSocketJson,webDB);
 
-// var SimuladorWeb = function (modo) {
+// ############################################################
+// ############### recuperacion del servidor ##################
+var recuperarServer = process.argv[3];
+if(typeof(recuperarServer) != 'undefined'){
+  recuperarInfoDB();
+}
+// ############################################################
 
 amqp.connect(amqp_url, function(err, conn) {
   conn.createChannel(function(err, ch) {
@@ -47,10 +57,13 @@ amqp.connect(amqp_url, function(err, conn) {
       //console.log('simuladorPublicacionesCC 1: publicacion recuperada --> ',publicacion);
 
       if (!web) {
-        //console.log('simuladorPublicacionesCC: ingresa a nueva publicacion');
         console.log('[o] [WEB]: se crea un nuevo web con data: ',evento.data);
         web = new WebJssm();
         web.compra = evento.data;
+        // web._fsm.state = 'solicitarEntrega';
+        // web.history = ['estado1','estado2', 'estado3'];
+        // console.log("Estado del jssm: "+web.state+" - history:");
+        // console.log(web.history);
         webDB.push(web);
 
         // ################################################################
@@ -93,13 +106,34 @@ amqp.connect(amqp_url, function(err, conn) {
   });
 });
 
-// monitor.server.listen(6002, function () {
-//   console.log('Servidor MONITOR escuchando en el puerto %j', monitor.server.address());
-// });
+// ################################################################
+// #################### PARCHE PERSISTENCIA #######################
+adminBackups.saveData(webDB);
+// ################################################################
+
+function recuperarInfoDB(){
+  adminBackups.getDataDbPromise('WEB').then(function(result){
+    console.log("Rdo de la promise en WEB");
+    console.log(result);
+
+    var arrayObjectJssm = result.data_jssm;
+
+    //vamos llenando la lista con las compras ya creadas, las objectJssm creados
+    for (let i = 0; i < arrayObjectJssm.length; i++) {
+      const datosObjectWeb = arrayObjectJssm[i];
+      web = new WebJssm();  // creamos la nueva maquina
+      // seteamos los valores
+      web.compra = datosObjectWeb.data_compra;
+      web._fsm.state = datosObjectWeb.current_status;
+      web.history = datosObjectWeb.history;
+      webDB.push(web);
+    }
+
+    // mandar mje al server pug de serv recuperado (ver que info mandar en el mje)
+
+  });
+}
 
 monitor.serverIO.listen(6002, function () {
   console.log('Servidor MONITOR-IO de compras escuchando en localhost:6002..')
 })
-
-// }
-// module.exports = SimuladorWeb;

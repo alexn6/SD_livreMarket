@@ -32,6 +32,17 @@ var AdministratorServers = function () {
         killerChildByPid(child_server.pid + 1);
       }
     }
+
+    // reestablece el servidor especificado desde su ultimo estado persistido
+    this.reestablishServer = function(name_server, modo){
+      var child_created = recuServer(name_server, modo);
+
+      if(child_created != null){
+        asignChildServer(name_server, child_created);
+        console.log("[adminServers]: Servidor "+name_server+" reestablecido con pid: "+child_created.pid);
+      }
+        
+    }
 }
 
 module.exports = AdministratorServers;
@@ -56,8 +67,31 @@ function upServer(nameServer, modo){
       console.log("[o]: Desplegado Servidor : "+nameServer.toUpperCase()+"\n [>] Salida: "+stdout);
       if (error !== null) {
         // ################## maquillar esto ##################
-          // console.log('Exec ejecucion error: ', error);
-          console.log('[X]: Se termino el proceso del servidor '+nameServer.toUpperCase());
+          console.log('Exec ejecucion error: ', error);
+          //console.log('[X]: Se termino el proceso del servidor '+nameServer.toUpperCase());
+      }
+  });
+
+  return child;
+}
+
+// modo: normal o step
+function recuServer(nameServer, modo){
+  var path = getPathServer(nameServer);
+
+  // no se encontro el servidor
+  if(path == null){
+    return path;
+  }
+
+  var cmd = "node "+path+" "+modo+" RECU";
+
+  var child = child_process.exec(cmd, function(error, stdout, stderr){
+      console.log("[R]: Servidor reestablecido : "+nameServer.toUpperCase()+"\n [>] Salida: "+stdout);
+      if (error !== null) {
+        // ################## maquillar esto ##################
+          console.log('Exec ejecucion error: ', error);
+          //console.log('[X]: Se termino el proceso del servidor '+nameServer.toUpperCase());
       }
   });
 

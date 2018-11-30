@@ -7,6 +7,10 @@ var EnviosJssm = require('../maquinas/enviosJssmImpl');
 var SteperSocketJson = require('../SteperSocketJson');
 var steperSocketJson = new SteperSocketJson(process.argv[2]);
 
+// para manejar la persistencia de los datos
+var AdminBackups = require('../mom/adminBackups');
+var adminBackups = new AdminBackups();
+
 var enviosDB = new Array();
 var envio;
 
@@ -16,7 +20,13 @@ var MonitorServerSocketJson = require('../monitorServerSocketJson');
 // var monitor = new MonitorServerSocketJson(steper,enviosDB);
 var monitor = new MonitorServerSocketJson(steperSocketJson,enviosDB);
 
-// var SimuladorEnvios = function (modo) {
+// ############################################################
+// ############### recuperacion del servidor ##################
+var recuperarServer = process.argv[3];
+if(typeof(recuperarServer) != 'undefined'){
+  recuperarInfoDB();
+}
+// ############################################################
 
 amqp.connect(amqp_url, function(err, conn) {
   conn.createChannel(function(err, ch) {
@@ -76,9 +86,34 @@ amqp.connect(amqp_url, function(err, conn) {
   });
 });
 
-// monitor.server.listen(6005, function () {
-//   console.log('Servidor MONITOR escuchando en el puerto %j', monitor.server.address());
-// });
+// ################################################################
+// #################### PARCHE PERSISTENCIA #######################
+adminBackups.saveData(enviosDB);
+// ################################################################
+
+function recuperarInfoDB(){
+  adminBackups.getDataDbPromise('ENVIOS').then(function(result){
+    console.log("Rdo de la promise en ENVIOS");
+    console.log(result);
+
+    var arrayObjectJssm = result.data_jssm;
+
+    //vamos llenando la lista con las compras ya creadas, las objectJssm creados
+    for (let i = 0; i < arrayObjectJssm.length; i++) {
+      const datosObjectWeb = arrayObjectJssm[i];
+      envio = new EnviosJssm();  // creamos la nueva maquina
+      // seteamos los valores
+      envio.compra = datosObjectWeb.data_compra;
+      envio._fsm.state = datosObjectWeb.current_status;
+      envio.history = datosObjectWeb.history;
+      enviosDB.push(envio);
+    }
+
+    // mandar mje al server pug de serv recuperado (ver que info mandar en el mje)
+
+  });
+}
+
 monitor.serverIO.listen(6005, function () {
   console.log('Servidor MONITOR-IO de compras escuchando en localhost:6005..')
 })
