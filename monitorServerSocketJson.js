@@ -11,12 +11,12 @@ var ioServerMonitor = require('socket.io')(serverIO);
 // #####################################################
 // #####################################################
 
-var MonitorServerSocketJson = function (steper,comprasDB, status) {
+var MonitorServerSocketJson = function (steper,comprasDB, status_recu) {
   this.steper = steper;
   this.comprasDB = comprasDB;
   this.serverIO = serverIO;
   this.ioServerMonitor = ioServerMonitor;
-  this.status = status;
+  const recuperacion = status_recu;
 
   ioServerMonitor.on('connection', function (sock) {
     console.log('Nueva Conexión IO');
@@ -63,9 +63,6 @@ var MonitorServerSocketJson = function (steper,comprasDB, status) {
       var compra = _.find(comprasDB,function (compra) {
         // console.log("[MON-IO] Busca en la DB la compra n° "+idCompra);
         // console.log(comprasDB);
-
-        // ############################################
-        // ################## ERROR? ##################
         return compra.compra.compraId == idCompra;
       });
 
@@ -100,26 +97,22 @@ var MonitorServerSocketJson = function (steper,comprasDB, status) {
     });
 
     // ##################################################################
-    // ########################## EVENTO BACKUP #########################
-
-    // sock.on('srv-backup',function () {
-    //   // console.log('[STATUS_MON]: '+status);
-    //   // aca se hace el backup de los datos
-    //   var dataBackup = getDataBackup(comprasDB);
-    //   console.log("Datos para el backup:");
-    //   console.log(dataBackup);
-    //   //adminBackups.saveData(arrayObjectJssm, nameServer);
-    //   // ########### hacer la recuperacion de los datos objeto y nombre del server
-    // });
-
-    // ##################################################################
     // ########################## EVENTO STATUS #########################
 
     sock.on('srv-status',function () {
       // notificamos al cliente correspondiente del disMonitor el estado del servidor
-      // console.log('[STATUS_MON]: '+status);
       // si le responde es xq esta activo
       ioServerMonitor.sockets.emit('resp-srv-status', 'ACTIVO');
+    });
+
+    // ##################################################################
+
+    // ##################################################################
+    // ##################### EVENTO RECUPERACION ########################
+
+    // aca deberiamos mandar la info de los object jssm actuales
+    sock.on('recuperacion',function () {
+      ioServerMonitor.sockets.emit('status-recu', recuperacion);
     });
 
     // ##################################################################

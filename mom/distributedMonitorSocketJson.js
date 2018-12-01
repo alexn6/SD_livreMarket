@@ -23,6 +23,7 @@ var adminServer = new AdminServer();
 var webIO = ioSock.connect('http://localhost:'+portWeb, {reconnect: true});
 webIO.on('connect', function (sock) {
   console.log('[SRV_WEB]: Conexion exitosa!!!');
+  webIO.emit('recuperacion');
 });
 webIO.on('disconnect', function(){
   // mandar la señal de servidor caido al server PUG
@@ -32,6 +33,7 @@ webIO.on('disconnect', function(){
 var comprasIO = ioSock.connect('http://localhost:'+portCompras, {reconnect: true});
 comprasIO.on('connect', function (sock) {
   console.log('[SRV_COMPRAS]: Conexion exitosa!!!');
+  comprasIO.emit('recuperacion');
 });
 comprasIO.on('disconnect', function(){
   // mandar la señal de servidor caido al server PUG
@@ -41,6 +43,7 @@ comprasIO.on('disconnect', function(){
 var publicacionesIO = ioSock.connect('http://localhost:'+portPublicaciones, {reconnect: true});
 publicacionesIO.on('connect', function (sock) {
   console.log('[SRV_PUBLICACIONES]: Conexion exitosa!!!');
+  publicacionesIO.emit('recuperacion');
 });
 publicacionesIO.on('disconnect', function(){
   // mandar la señal de servidor caido al server PUG
@@ -50,6 +53,7 @@ publicacionesIO.on('disconnect', function(){
 var infraccionesIO = ioSock.connect('http://localhost:'+portInfracciones, {reconnect: true});
 infraccionesIO.on('connect', function (sock) {
   console.log('[SRV_INFRACCIONES]: Conexion exitosa!!!');
+  infraccionesIO.emit('recuperacion');
 });
 infraccionesIO.on('disconnect', function(){
   // mandar la señal de servidor caido al server PUG
@@ -59,6 +63,7 @@ infraccionesIO.on('disconnect', function(){
 var pagosIO = ioSock.connect('http://localhost:'+portPagos, {reconnect: true});
 pagosIO.on('connect', function (sock) {
   console.log('[SRV_PAGOS]: Conexion exitosa!!!');
+  pagosIO.emit('recuperacion');
 });
 pagosIO.on('disconnect', function(){
   // mandar la señal de servidor caido al server PUG
@@ -68,6 +73,7 @@ pagosIO.on('disconnect', function(){
 var enviosIO = ioSock.connect('http://localhost:'+portEnvios, {reconnect: true});
 enviosIO.on('connect', function (sock) {
   console.log('[SRV_ENVIOS]: Conexion exitosa!!!');
+  enviosIO.emit('recuperacion');
 });
 enviosIO.on('disconnect', function(){
   // mandar la señal de servidor caido al server PUG
@@ -191,45 +197,6 @@ io.on('connection', function(socket) {
     
   });
 
-  // socket.on('end',function () {
-  //   console.log('Fin del socket: ' + socket.remoteAddress + ' ' + socket.remotePort);
-  // });
-
-  // socket.once('close',function (data) {
-  //   console.log('Socket Cerrado: ' + socket.remoteAddress +' '+ socket.remotePort);
-  // });
-
-  // compras.on('data',function (data) {
-  //   console.log("compras : "+data);
-  //   // socket.sendMessage({result: mUtil.to_ObjJSON(data)});
-  //   io.sockets.emit('messages', [mUtil.to_ObjJSON(data)]);
-  // });
-
-  // compras.on('close',function () {
-  //   console.log('conexxion con compras perdida...');
-  //   // socket.sendMessage({result: data});
-  // });
-
-  // Publicaciones.on('data',function (data) {
-  //   console.log("publicaciones : "+data);
-  //   socket.sendMessage({result: data});
-  // });
-
-  // Publicaciones.on('close',function () {
-  //   console.log('conexión con Publicaciones perdida...');
-  //   // socket.sendMessage({result: data});
-  // });
-
-  // web.on('data',function (data) {
-  //   console.log("web : "+data);
-  //   socket.sendMessage({result: data});
-  // });
-
-  // web.on('close',function () {
-  //   console.log('conexión con web perdida...');
-  //   // socket.sendMessage({result: data});
-  // });
-
 });
 
 // #################################################################
@@ -288,6 +255,13 @@ comprasIO.on('update-cant-compras', function(data) {
   io.sockets.emit('upd_compras', data);
 })
 
+// enviamos el estado de recuperacion de la db
+comprasIO.on('status-recu', function(dataCompra0) {
+  console.log("[status-recu]: Mje recibido del Monitor-IO (COMPRAS): ",dataCompra0);
+  // se envia la info al server PUG
+  io.sockets.emit('srv-compras-recu-status', dataCompra0);
+})
+
 // ##############################################
 // ################## MON-WEB ###################
 
@@ -324,6 +298,13 @@ webIO.on('resp-mje-env-step', function(data) {
   console.log("[resp-mje-env-step]: Mje recibido del Monitor-IO (WEB): ",data);
   // se envia la info al server PUG
   io.sockets.emit('resp-mjes-env-web', data);
+})
+
+// enviamos el estado de recuperacion de la db
+webIO.on('status-recu', function(dataCompra0) {
+  console.log("[status-recu]: Mje recibido del Monitor-IO (WEB): ",dataCompra0);
+  // se envia la info al server PUG
+  io.sockets.emit('srv-web-recu-status', dataCompra0);
 })
 
 // ##############################################
@@ -364,6 +345,13 @@ publicacionesIO.on('resp-mje-env-step', function(data) {
   io.sockets.emit('resp-mjes-env-pub', data);
 })
 
+// enviamos el estado de recuperacion de la db
+publicacionesIO.on('status-recu', function(dataCompra0) {
+  console.log("[status-recu]: Mje recibido del Monitor-IO (PUBLICACIONES): ",dataCompra0);
+  // se envia la info al server PUG
+  io.sockets.emit('srv-pub-recu-status', dataCompra0);
+})
+
 // ##############################################
 // ################# MON-PAGOS ##################
 
@@ -400,6 +388,13 @@ pagosIO.on('resp-mje-env-step', function(data) {
   console.log("[resp-mje-env-step]: Mje recibido del Monitor-IO (PAGOS): ",data);
   // se envia la info al server PUG
   io.sockets.emit('resp-mjes-env-pagos', data);
+})
+
+// enviamos el estado de recuperacion de la db
+pagosIO.on('status-recu', function(dataCompra0) {
+  console.log("[status-recu]: Mje recibido del Monitor-IO (PAGOS): ",dataCompra0);
+  // se envia la info al server PUG
+  io.sockets.emit('srv-pagos-recu-status', dataCompra0);
 })
 
 // ##############################################
@@ -440,6 +435,13 @@ infraccionesIO.on('resp-mje-env-step', function(data) {
   io.sockets.emit('resp-mjes-env-infrac', data);
 })
 
+// enviamos el estado de recuperacion de la db
+infraccionesIO.on('status-recu', function(dataCompra0) {
+  console.log("[status-recu]: Mje recibido del Monitor-IO (INFRACCIONES): ",dataCompra0);
+  // se envia la info al server PUG
+  io.sockets.emit('srv-infrac-recu-status', dataCompra0);
+})
+
 // ##############################################
 // ################# MON-ENVIOS #################
 
@@ -476,6 +478,13 @@ enviosIO.on('resp-mje-env-step', function(data) {
   console.log("[resp-mje-env-step]: Mje recibido del Monitor-IO (ENVIOS): ",data);
   // se envia la info al server PUG
   io.sockets.emit('resp-mjes-env-envios', data);
+})
+
+// enviamos el estado de recuperacion de la db
+enviosIO.on('status-recu', function(dataCompra0) {
+  console.log("[status-recu]: Mje recibido del Monitor-IO (ENVIOS): ",dataCompra0);
+  // se envia la info al server PUG
+  io.sockets.emit('srv-envios-recu-status', dataCompra0);
 })
 
 // ####################################################

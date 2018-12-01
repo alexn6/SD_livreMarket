@@ -47,7 +47,11 @@ var AdminBackups = function () {
           dbo.collection("backups").find({}).toArray(function(err, datosBackupDB) {
               if (err) throw reject(err);
               // devolvemos solo el ultimo backup realizado
-              resolve(datosBackupDB.pop());
+              var data = null;
+              if(datosBackupDB.length > 0){
+                data = datosBackupDB.pop();
+              }
+              resolve(data);
               db.close();
           });
         });

@@ -19,15 +19,19 @@ var publicacion;
 // var monitor = new MonitorServer(steper,PublicacionesDB);
 var MonitorServerSocketJson = require('../monitorServerSocketJson');
 // var monitor = new MonitorServerSocketJson(steper,PublicacionesDB);
-var monitor = new MonitorServerSocketJson(steperSocketJson,PublicacionesDB);
+// var monitor = new MonitorServerSocketJson(steperSocketJson,PublicacionesDB);
 
 // ############################################################
 // ############### recuperacion del servidor ##################
 var recuperarServer = process.argv[3];
+var recuperacion = false;
 if(typeof(recuperarServer) != 'undefined'){
+  recuperacion = true;
   recuperarInfoDB();
 }
 // ############################################################
+
+var monitor = new MonitorServerSocketJson(steperSocketJson, PublicacionesDB, recuperacion);
 
 amqp.connect(amqp_url, function(err, conn) {
   conn.createChannel(function(err, ch) {
@@ -92,10 +96,14 @@ adminBackups.saveData(PublicacionesDB);
 // ################################################################
 
 function recuperarInfoDB(){
-
   adminBackups.getDataDbPromise('PUBLICACIONES').then(function(result){
-    console.log("Rdo de la promise en PUBLICACIONES");
-    console.log(result);
+    // console.log("Rdo de la promise en PUBLICACIONES");
+    // console.log(result);
+
+    if(result == null){
+      console.log("[RECU_DB]: No hay datos en la DB");
+      return;
+    }
 
     var arrayObjectJssm = result.data_jssm;
 
@@ -110,15 +118,9 @@ function recuperarInfoDB(){
       PublicacionesDB.push(publicacion);
     }
 
-    // mandar mje al server pug de serv recuperado (ver que info mandar en el mje)
-
   });
-
 }
 
 monitor.serverIO.listen(6003, function () {
   console.log('Servidor MONITOR-IO de publicaciones escuchando en localhost:6003..')
 })
-
-// }
-// module.exports = SimuladorPublicaciones;

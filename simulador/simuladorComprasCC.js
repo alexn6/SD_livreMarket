@@ -20,18 +20,24 @@ var compra;
 // var monitor = new MonitorServer(steper,comprasDB);
 var MonitorServerSocketJson = require('../monitorServerSocketJson');
 //var monitor = new MonitorServerSocketJson(steper,comprasDB);
-var monitor = new MonitorServerSocketJson(steperSocketJson,comprasDB);
+// var monitor = new MonitorServerSocketJson(steperSocketJson,comprasDB);
 
 // ############################################################
 // ############### recuperacion del servidor ##################
 var recuperarServer = process.argv[3];
+var recuperacion = false;
 if(typeof(recuperarServer) != 'undefined'){
+  recuperacion = true;
   recuperarInfoDB();
 }
 // ############################################################
 
+// var monitor = new MonitorServerSocketJson(steperSocketJson,comprasDB);
+var monitor = new MonitorServerSocketJson(steperSocketJson, comprasDB, recuperacion);
+
 amqp.connect(amqp_url, function(err, conn) {
   conn.createChannel(function(err, ch) {
+
     var q = 'compras';
 
     ch.consume(q, function(msg) {
@@ -110,13 +116,18 @@ amqp.connect(amqp_url, function(err, conn) {
 
 // ################################################################
 // #################### PARCHE PERSISTENCIA #######################
-adminBackups.saveData(comprasDB);
+adminBackups.saveData(comprasDB);   // se ejecuta cada minuto
 // ################################################################
 
 function recuperarInfoDB(){
   adminBackups.getDataDbPromise('COMPRAS').then(function(result){
-    console.log("Rdo de la promise en COMPRAS");
-    console.log(result);
+    // console.log("Rdo de la promise en COMPRAS");
+    // console.log(result);
+
+    if(result == null){
+      console.log("[RECU_DB]: No hay datos en la DB");
+      return;
+    }
 
     var arrayObjectJssm = result.data_jssm;
 
@@ -131,18 +142,9 @@ function recuperarInfoDB(){
       comprasDB.push(compra);
     }
 
-    // mandar mje al server pug de serv recuperado (ver que info mandar en el mje)
-
   });
 }
-
-// monitor.server.listen(6000, function () {
-//   console.log('Servidor MONITOR escuchando en el puerto %j', monitor.server.address());
-// });
 
 monitor.serverIO.listen(6000, function () {
   console.log('Servidor MONITOR-IO de compras escuchando en localhost:6000..')
 })
-
-// }
-// module.exports = SimuladorCompras;

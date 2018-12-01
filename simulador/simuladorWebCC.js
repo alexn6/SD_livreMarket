@@ -19,15 +19,19 @@ var web;
 // var monitor = new MonitorServer(steper,webDB);
 var MonitorServerSocketJson = require('../monitorServerSocketJson');
 // var monitor = new MonitorServerSocketJson(steper,webDB);
-var monitor = new MonitorServerSocketJson(steperSocketJson,webDB);
+// var monitor = new MonitorServerSocketJson(steperSocketJson,webDB);
 
 // ############################################################
 // ############### recuperacion del servidor ##################
 var recuperarServer = process.argv[3];
+var recuperacion = false;
 if(typeof(recuperarServer) != 'undefined'){
+  recuperacion = true;
   recuperarInfoDB();
 }
 // ############################################################
+
+var monitor = new MonitorServerSocketJson(steperSocketJson,webDB, recuperacion);
 
 amqp.connect(amqp_url, function(err, conn) {
   conn.createChannel(function(err, ch) {
@@ -37,7 +41,6 @@ amqp.connect(amqp_url, function(err, conn) {
     console.log(" [*] Esperando mensajes en %s. Para salir presione CTRL+C", q);
     ch.consume(q, function(msg) {
       var evento = JSON.parse(msg.content.toString());
-      //console.log('se recibió el mensaje: ',evento);
       console.log('==> [WEB]: se recibe la tarea  *** ',evento.tarea,' ***');
 
       // ################################################################
@@ -53,8 +56,6 @@ amqp.connect(amqp_url, function(err, conn) {
       web = _.find(webDB,function (compra) {
         return compra.compra.compraId == evento.data.compraId;
       });
-
-      //console.log('simuladorPublicacionesCC 1: publicacion recuperada --> ',publicacion);
 
       if (!web) {
         console.log('[o] [WEB]: se crea un nuevo web con data: ',evento.data);
@@ -113,8 +114,13 @@ adminBackups.saveData(webDB);
 
 function recuperarInfoDB(){
   adminBackups.getDataDbPromise('WEB').then(function(result){
-    console.log("Rdo de la promise en WEB");
-    console.log(result);
+    // console.log("Rdo de la promise en WEB");
+    // console.log(result);
+
+    if(result == null){
+      console.log("[RECU_DB]: No hay datos en la DB");
+      return;
+    }
 
     var arrayObjectJssm = result.data_jssm;
 
@@ -128,8 +134,6 @@ function recuperarInfoDB(){
       web.history = datosObjectWeb.history;
       webDB.push(web);
     }
-
-    // mandar mje al server pug de serv recuperado (ver que info mandar en el mje)
 
   });
 }

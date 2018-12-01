@@ -18,15 +18,19 @@ var envio;
 // var monitor = new MonitorServer(steper,enviosDB);
 var MonitorServerSocketJson = require('../monitorServerSocketJson');
 // var monitor = new MonitorServerSocketJson(steper,enviosDB);
-var monitor = new MonitorServerSocketJson(steperSocketJson,enviosDB);
+// var monitor = new MonitorServerSocketJson(steperSocketJson,enviosDB);
 
 // ############################################################
 // ############### recuperacion del servidor ##################
 var recuperarServer = process.argv[3];
+var recuperacion = false;
 if(typeof(recuperarServer) != 'undefined'){
+  recuperacion = true;
   recuperarInfoDB();
 }
 // ############################################################
+
+var monitor = new MonitorServerSocketJson(steperSocketJson, enviosDB, recuperacion);
 
 amqp.connect(amqp_url, function(err, conn) {
   conn.createChannel(function(err, ch) {
@@ -93,8 +97,13 @@ adminBackups.saveData(enviosDB);
 
 function recuperarInfoDB(){
   adminBackups.getDataDbPromise('ENVIOS').then(function(result){
-    console.log("Rdo de la promise en ENVIOS");
-    console.log(result);
+    // console.log("Rdo de la promise en ENVIOS");
+    // console.log(result);
+
+    if(result == null){
+      console.log("[RECU_DB]: No hay datos en la DB");
+      return;
+    }
 
     var arrayObjectJssm = result.data_jssm;
 
@@ -109,14 +118,9 @@ function recuperarInfoDB(){
       enviosDB.push(envio);
     }
 
-    // mandar mje al server pug de serv recuperado (ver que info mandar en el mje)
-
   });
 }
 
 monitor.serverIO.listen(6005, function () {
   console.log('Servidor MONITOR-IO de compras escuchando en localhost:6005..')
 })
-
-// }
-// module.exports = SimuladorEnvios;

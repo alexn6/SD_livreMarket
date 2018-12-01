@@ -18,15 +18,19 @@ var infraccion;
 // var monitor = new MonitorServer(steper,infraccionesDB);
 var MonitorServerSocketJson = require('../monitorServerSocketJson');
 // var monitor = new MonitorServerSocketJson(steper,infraccionesDB);
-var monitor = new MonitorServerSocketJson(steperSocketJson,infraccionesDB);
+// var monitor = new MonitorServerSocketJson(steperSocketJson,infraccionesDB);
 
 // ############################################################
 // ############### recuperacion del servidor ##################
 var recuperarServer = process.argv[3];
+var recuperacion = false;
 if(typeof(recuperarServer) != 'undefined'){
+  recuperacion = true;
   recuperarInfoDB();
 }
 // ############################################################
+
+var monitor = new MonitorServerSocketJson(steperSocketJson, infraccionesDB, recuperacion);
 
 amqp.connect(amqp_url, function(err, conn) {
   conn.createChannel(function(err, ch) {
@@ -93,8 +97,13 @@ adminBackups.saveData(infraccionesDB);
 
 function recuperarInfoDB(){
   adminBackups.getDataDbPromise('INFRACCIONES').then(function(result){
-    console.log("Rdo de la promise en INFRACCIONES");
-    console.log(result);
+    // console.log("Rdo de la promise en INFRACCIONES");
+    // console.log(result);
+
+    if(result == null){
+      console.log("[RECU_DB]: No hay datos en la DB");
+      return;
+    }
 
     var arrayObjectJssm = result.data_jssm;
 

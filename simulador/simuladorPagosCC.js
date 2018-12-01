@@ -18,15 +18,19 @@ var pago;
 // var monitor = new MonitorServer(steper,PagosDB);
 var MonitorServerSocketJson = require('../monitorServerSocketJson');
 // var monitor = new MonitorServerSocketJson(steper,PagosDB);
-var monitor = new MonitorServerSocketJson(steperSocketJson,PagosDB);
+// var monitor = new MonitorServerSocketJson(steperSocketJson,PagosDB);
 
 // ############################################################
 // ############### recuperacion del servidor ##################
 var recuperarServer = process.argv[3];
+var recuperacion = false;
 if(typeof(recuperarServer) != 'undefined'){
+  recuperacion = true;
   recuperarInfoDB();
 }
 // ############################################################
+
+var monitor = new MonitorServerSocketJson(steperSocketJson, PagosDB, recuperacion);
 
 amqp.connect(amqp_url, function(err, conn) {
   conn.createChannel(function(err, ch) {
@@ -94,8 +98,13 @@ adminBackups.saveData(PagosDB);
 
 function recuperarInfoDB(){
   adminBackups.getDataDbPromise('PAGOS').then(function(result){
-    console.log("Rdo de la promise en PAGOS");
-    console.log(result);
+    // console.log("Rdo de la promise en PAGOS");
+    // console.log(result);
+
+    if(result == null){
+      console.log("[RECU_DB]: No hay datos en la DB");
+      return;
+    }
 
     var arrayObjectJssm = result.data_jssm;
 
@@ -110,14 +119,9 @@ function recuperarInfoDB(){
       PagosDB.push(pago);
     }
 
-    // mandar mje al server pug de serv recuperado (ver que info mandar en el mje)
-
   });
 }
 
 monitor.serverIO.listen(6004, function () {
   console.log('Servidor MONITOR-IO de compras escuchando en localhost:6004..')
 })
-
-// }
-// module.exports = SimuladorPagos;
